@@ -1,0 +1,19 @@
+@import "~@theme/styles";
+
+.fe-toolbar {
+    display: grid;
+    grid-template-columns: auto 1fr 1.5rem;
+    justify-content: space-between;
+    box-sizing: border-box;
+    gap: .5rem;
+
+    &__center {
+        @include font-size--Header3;
+        color: $color-text-alt;
+    }
+
+    &__left {
+        width: max-content;
+        display: flex;
+    }
+}

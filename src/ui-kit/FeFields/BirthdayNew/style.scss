@@ -1,0 +1,11 @@
+@import "~@theme/styles";
+
+
+.fe-inputV2__calendar {
+    cursor: default;
+    color: $color-text-link-default;
+}
+
+.fe-inputV2 .fe-inputV2__input[type="date"] {
+    min-width: calc(100% - 1rem);
+}

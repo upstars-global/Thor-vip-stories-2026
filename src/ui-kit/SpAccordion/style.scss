@@ -1,0 +1,91 @@
+@import "~@theme/styles";
+
+
+.sp-accordion {
+    &-label {
+        @include font-size--Body($font-weight--normal);
+    }
+    & &-content {
+        margin: 0;
+    }
+}
+
+.sp-accordion {
+    width: 100%;
+    border-bottom: none;
+
+    $this: &;
+
+    &-label {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 1.5rem 0.5rem 0;
+        position: relative;
+        cursor: pointer;
+        color: $color-text-menu-default;
+
+        &:hover {
+            color: $color-text-menu-active;
+        }
+
+        @include media(S) {
+            padding: 0.5rem 0 1rem 0;
+        }
+
+        &:after {
+            content: "";
+            display: block;
+            width: 1.5rem;
+            height: 1.5rem;
+            transition: transform 0.2s ease-in-out;
+            background-image: url('./images/arrow.svg');
+            background-repeat: no-repeat;
+            transform: rotate(0deg);
+            position: absolute;
+            right: 0;
+            top: calc(50% - 1rem);
+
+            @include media(S) {
+                position: relative;
+                right: auto;
+            }
+
+            .theme-dark & {
+                filter: invert(1);
+            }
+        }
+    }
+
+    &-content {
+        max-height: 0;
+        padding: 0;
+        margin: 0;
+        transition: opacity 0.2s ease-in-out, max-height 0.2s ease-in-out;
+        opacity: 0;
+        overflow: hidden;
+    }
+
+    input {
+        position: absolute;
+        opacity: 0;
+        z-index: -1;
+        scroll-margin-top: 5rem;
+
+        &:checked {
+            + #{$this}-label {
+                color: $color-text-menu-active;
+                font-weight: $font-weight--bold;
+
+                &:after {
+                    transform: rotate(180deg);
+                }
+            }
+            ~ #{$this}-content {
+                opacity: 1;
+                max-height: 100%;
+                transition: opacity 0.2s ease-in-out, max-height 0.2s ease-in-out;
+                padding-bottom: 1rem;
+            }
+        }
+    }
+}

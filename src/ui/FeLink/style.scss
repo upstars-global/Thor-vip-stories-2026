@@ -1,0 +1,18 @@
+@import "~@theme/styles";
+
+$fe-link--color: var(--color-primary-1);
+$link--theme: 'dark';
+
+.fe-link {
+    &--primary {
+        @include link($link--theme, false);
+        color: $fe-link--color;
+        font-weight: $font-weight--bold;
+    }
+
+    &--secondary {
+        @include link($link--theme, false);
+        color: $fe-link--color;
+        font-weight: $font-weight--bold;
+    }
+}

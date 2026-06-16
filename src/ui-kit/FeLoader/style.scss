@@ -1,0 +1,74 @@
+@import "~@theme/styles";
+
+
+$strokeWidth: 3px;
+$strokeOffset: 5px;
+
+.fe-loader {
+    width: 1em;
+    height: 1em;
+    min-width: 2rem;
+    min-height: 2rem;
+    position: relative;
+    margin: 0 auto;
+
+    &--centered {
+        top: 50%;
+        transform: translateY(-50%);
+        grid-row: 1 / end-line;
+    }
+
+    &__circle {
+        position: absolute;
+        border: 3px solid;
+        border-radius: 50%;
+        animation-name: spin;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+
+        &--1 {
+            $position: 0;
+            top: $position;
+            left: $position;
+            right: $position;
+            bottom: $position;
+            border-color: $color-text-alt;
+            border-right-color: transparent;
+            border-bottom-color: transparent;
+            animation-duration: 2000ms;
+        }
+
+        &--2 {
+            $position: $strokeWidth + $strokeOffset;
+            top: $position;
+            left: $position;
+            right: $position;
+            bottom: $position;
+            border-color: $color-text-alt;
+            border-right-color: transparent;
+            border-bottom-color: transparent;
+            animation-duration: 1500ms;
+        }
+
+        &--3 {
+            $position: ($strokeWidth + $strokeOffset) * 2;
+            top: $position;
+            left: $position;
+            right: $position;
+            bottom: $position;
+            border-color: $color-text-alt;
+            border-right-color: transparent;
+            border-bottom-color: transparent;
+            animation-duration: 1000ms;
+        }
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

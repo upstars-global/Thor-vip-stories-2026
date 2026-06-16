@@ -1,0 +1,49 @@
+@import "~@theme/styles";
+
+
+
+.checkbox {
+    display: flex;
+    align-items: center;
+
+    &__input {
+        position: absolute;
+        left: -9999px;
+
+        &:checked {
+            & ~ .checkbox__mask:after {
+                display: inline-block;
+                content: '';
+                height: 100%;
+                width: 100%;
+                background-color: $color-on-light-back;
+                mask: url(images/icon.svg) no-repeat center center;
+                mask-size: 70%;
+
+                .is-invert & {
+                    background-color: $color-on-dark-back;
+                }
+            }
+        }
+    }
+
+    &__input:checked + &__mask{
+        background-color: $color-text-link-default;
+        border: 2px solid $color-text-link-default;
+    }
+
+    &__mask {
+        display: inline-block;
+        width: 1.125rem;
+        height: 1.125rem;
+        border: 2px solid $color-tertiary-1;
+        border-radius: 0.25rem;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+        cursor: pointer;
+
+        .is-invert & {
+            border-color: $color-on-dark-back;
+        }
+    }
+}

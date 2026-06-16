@@ -1,0 +1,160 @@
+@import "~@theme/styles";
+
+.fe-inputV2 {
+    &--disabled  &__input {
+        border-color: transparent;
+    }
+
+    &__label{
+        @include label;
+
+        &-required {
+            color: $color-error;
+        }
+    }
+
+    &__description{
+        @include label-secondary;
+        padding: 0 1.5rem;
+        margin-top: .25rem;
+    }
+
+    &__error-message {
+        @include font-size--Caption2($font-weight--bold);
+        background: $color-error;
+        color: $color-on-dark-back;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        box-sizing: border-box;
+        text-align: center;
+        left: 50%;
+        transform: translate(-50%, 0);
+    }
+
+    &--has-recommend {
+        .fe-inputV2__input,
+        .fe-inputV2__input:focus {
+            border-bottom: none;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+    }
+
+
+    &__recommend {
+        border: 1px solid $color-input-border-focus;
+        position: absolute;
+        top: 100%;
+        z-index: 100;
+        background: $color-input-background;
+        width: 100%;
+        border-radius: 0 0 $border-radius-M $border-radius-M;
+        border-top: none;
+        box-sizing: border-box;
+
+        ul {
+            padding: 0;
+            list-style: none;
+
+            li {
+                padding: .75rem 1rem;
+                position: relative;
+                border-top: 1px solid $color-tertiary-3;
+                color: $color-text-body;
+                box-sizing: border-box;
+
+                span {
+                    color: $color-text-alt;
+                }
+            }
+        }
+    }
+}
+
+
+.fe-inputV2 {
+    @include input;
+
+    &__input {
+
+        &[type="password"] {
+            letter-spacing: 0.5rem;
+
+            @include placeholder {
+                letter-spacing: normal;
+            }
+        }
+
+        .has-left-content & {
+            padding-left: 3rem;
+        }
+
+        .has-right-content & {
+            padding-right: 2rem;
+        }
+
+
+        &[type="date"] {
+            min-width: 100%;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+    }
+
+    &__left, &__right {
+        position: absolute;
+    }
+
+    &__left {
+        left: 1rem;
+    }
+
+    &__right {
+        right: 1rem;
+        font-weight: unset;
+    }
+
+    &__left:not(:empty) {
+        margin-right: 0.5rem;
+    }
+
+    &__right:not(:empty) {
+        margin-left: 0.5rem;
+    }
+
+    &--text-center &__input {
+        text-align: center;
+    }
+
+    &--text-right &__input {
+        text-align: right;
+    }
+
+    &#{&}--error input {
+        border: 2px solid $color-error;
+    }
+    &--disabled {
+        @include font-color--disabled;
+    }
+
+    &--font-big {
+        font-size: 1rem;
+    }
+
+    &__error-message {
+        position: absolute;
+        top: calc(100% + .25rem);
+        width: 100%;
+        padding-left: 1rem;
+        z-index: 1;
+    }
+
+
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

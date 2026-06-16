@@ -1,0 +1,62 @@
+@import "~@theme/styles";
+
+.fe-tab {
+    border-radius: $border-radius-S;
+
+    &:hover {
+        color: $color-on-dark-back;
+    }
+
+    &#{&}--active {
+        color: $color-on-dark-back;
+        background: $color-secondary-3;
+        font-weight: $font-weight--bold;
+    }
+}
+
+@keyframes touch-active-tab {
+    0% {
+        background-color: transparent;
+    }
+
+    5% {
+        background-color: $color-primary-2;
+    }
+
+    40% {
+        background-color: $color-primary-3;
+    }
+
+    100% {
+        background-color: transparent;
+    }
+}
+
+// TODO Вынести тематические переменные в файл стилей компонента по проекту
+.fe-tab {
+    @include font-size--Caption1;
+    font-weight: $font-weight--normal;
+    color: $color-text-menu-default;
+
+    @include transition(
+        transition--background-color()
+    );
+
+    position: relative;
+    outline: none;
+
+    padding: 0.25rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    opacity: 1;
+
+    &--active {
+        opacity: 1;
+    }
+
+    &--disabled {
+        @include font-color--disabled;
+        pointer-events: none;
+        cursor: default;
+    }
+}

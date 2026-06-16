@@ -1,0 +1,83 @@
+@import "~@theme/styles";
+
+
+
+.fe-card {
+    background-color: $color-layer-alt-1;
+    color: $color-text-alt;
+    position: relative;
+    border-radius: $border-radius-M;
+
+    &--shadow {
+        @include shadow-secondary-big;
+    }
+
+    &--primary {
+        @include background-primary;
+        @include font-color--white;
+    }
+
+    &--primary#{&}--shadow {
+        @include shadow("normal", $color-primary-1);
+    }
+
+    &--secondary {
+        @include background-secondary;
+        @include font-color--white;
+    }
+
+    &--secondary#{&}--shadow {
+        @include shadow("normal", $color-secondary-1);
+    }
+
+    &--success {
+        @include background-success;
+        @include font-color--white;
+    }
+
+    &--success#{&}--shadow {
+        @include shadow("normal", $color-successfully);
+    }
+
+    &--alert {
+        @include background-alert;
+        @include font-color--white;
+    }
+
+    &--alert#{&}--shadow {
+        @include shadow("normal", $color-error);
+    }
+
+    &--danger {
+        @include background-danger;
+        @include font-color--white;
+    }
+
+    &--danger#{&}--shadow {
+        @include shadow("normal", $color-error);
+    }
+
+    &--border {
+        @include fe-card--border;
+    }
+
+    &--disabled {
+        @include background-disabled;
+        @include font-color--black;
+    }
+
+    &--disabled#{&}--shadow {
+        @include shadow("normal", $color-layer-alt-3);
+    }
+
+    &--white {
+        @include background-white;
+    }
+
+    &--dark {
+        @include background-dark;
+    }
+    &--blue-Light {
+        @include background-light-blue;
+    }
+}

@@ -1,0 +1,19 @@
+@import "~@theme/styles";
+
+
+.fe-badge {
+    position: relative;
+    padding: 0;
+    box-sizing: border-box;
+    height: 1.5rem;
+    width: 1.5rem;
+
+    @include media(M) {
+        height: 2rem;
+        width: 2rem;
+    }
+
+    &-image {
+        top: 0;
+    }
+}

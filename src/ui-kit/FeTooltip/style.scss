@@ -1,0 +1,106 @@
+@import "~@theme/styles";
+
+
+.fe-tooltip {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+
+    &__activator {
+        vertical-align: middle;
+        cursor: pointer;
+    }
+
+    &__body {
+        width: 100%;
+        box-sizing: border-box;
+        position: absolute;
+        z-index: 2;
+        transition: opacity 200ms ease;
+        visibility: hidden;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    &--hover:hover &__body, &--show &__body {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    &__content {
+        padding: 0.25rem 0.5rem;
+        border-radius: $border-radius-XS;
+        box-sizing: border-box;
+        text-align: center;
+    }
+
+    &--primary &__content {
+        @include background-primary;
+    }
+    &--secondary &__content {
+        @include background-secondary;
+    }
+    &--success &__content {
+        @include background-success;
+    }
+    &--alert &__content {
+        @include background-alert;
+    }
+    &--danger &__content {
+        @include background-danger;
+    }
+
+    &--full-width &__content {
+        width: 100%;
+    }
+
+    &--position-top,
+    &--position-under,
+    &--position-bottom {
+        width: 100%;
+    }
+
+    &--position-top &__body {
+        bottom: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    &--position-under &__body {
+        position: relative;
+        top: 0;
+    }
+
+    &--position-under &__content {
+        background: none;
+        text-align: left;
+        padding: 0.25rem 1rem;
+
+        & > * {
+            color: $color-error;
+        }
+
+    }
+
+    &--position-bottom &__body {
+        top: 100%;
+        margin-top: 0.5rem;
+    }
+
+    &--position-top &__body,
+    &--position-bottom &__body {
+        display: flex;
+        justify-content: center;
+    }
+
+    &--position-left &__body {
+        left: 0;
+        top: 50%;
+        transform: translate3d(calc(-100% - 6px), -50%, 0);
+    }
+
+    &--position-right &__body {
+        right: 0;
+        top: 50%;
+        transform: translate3d(calc(100% + 6px), -50%, 0);
+    }
+}

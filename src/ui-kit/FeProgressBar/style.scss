@@ -1,0 +1,45 @@
+@import "~@theme/styles";
+
+.fe-progressbar {
+    display: grid;
+    grid-gap: 0.25rem;
+    position: relative;
+    width: 100%;
+
+    & &__inner {
+        @include font-size--SmallCaption($font-weight--bold);
+        mix-blend-mode: difference;
+    }
+
+    &__main {
+        height: 0.5rem;
+        width: 100%;
+        border-radius: $border-radius-S;
+        background: $color-layer-alt-3;
+        position: relative;
+        margin: 0;
+        overflow: hidden;
+
+        .fe-progressbar--big & {
+            height:  1rem;
+        }
+    }
+
+    &__active {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        background: $color-additional-1;
+        border-radius: $border-radius-XS;
+    }
+
+    &__inner {
+        z-index: 10;
+        position: relative;
+        color: $color-text-alt;
+        font-weight: $font-weight--bold;
+        font-size: inherit;
+        line-height: inherit;
+    }
+}

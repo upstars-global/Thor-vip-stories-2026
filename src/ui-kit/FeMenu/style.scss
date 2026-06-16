@@ -1,0 +1,110 @@
+@import "~@theme/styles";
+
+.fe-menu {
+    display: flex;
+    height: auto;
+    margin: auto;
+    border-radius: 0;
+    background: $color-layer-body;
+    overflow-x: auto;
+    width: 100%;
+
+    @include media(S) {
+        justify-content: center;
+    }
+
+    &--tags {
+        height: auto;
+        padding: 0.5rem;
+        box-sizing: border-box;
+        justify-content: start;
+        background: $color-gradient-2;
+        border-radius:  $border-radius-M;
+
+        @include media(S) {
+            width: fit-content;
+        }
+
+        :deep(.fe-menu__item) {
+            @include font-size--Caption1;
+            height: auto;
+            padding: 0.25rem 1rem;
+            border: 0;
+            border-radius: $border-radius-M;
+            margin: 0 0.5rem 0 0;
+            white-space: nowrap;
+            color: $color-on-dark-back;
+
+            &.active,
+            &.current {
+                color: $color-on-light-back;
+                background: $color-on-dark-back;
+            }
+
+            @include media(M) {
+                margin: 0 0.5rem 0 0;
+            }
+
+            &:last-child {
+                margin: 0;
+            }
+
+            &:first-child {
+                margin: 0 0.5rem 0 0;
+            }
+
+            @include media(M) {
+                &:hover {
+                    color: $color-on-light-back;
+                    background: $color-on-dark-back;
+                }
+            }
+        }
+
+
+        &:after {
+            content: '';
+            flex: 0;
+        }
+    }
+
+    &:not(&--tags) {
+        padding: 0.5rem 0;
+        width: 100%;
+    }
+
+    &__item {
+        @include menu-hover;
+        @include font-size--Caption2;
+        height: 100%;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: row;
+        transition: all .2s ease;
+        margin-left: 1rem;
+        padding: 0;
+        border: none;
+        opacity: 1;
+        cursor: pointer;
+        white-space: nowrap;
+
+        @include media(M) {
+            margin-left:1.5rem;
+        }
+
+        &:first-child{
+            margin-left: 0;
+        }
+
+        &-icon {
+            margin: 0 0.5rem 0 0;
+
+            svg {
+                height: 100%;
+                width: 100%;
+            }
+        }
+    }
+}

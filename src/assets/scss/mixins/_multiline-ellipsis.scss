@@ -1,0 +1,14 @@
+@mixin multiEllipsis($fontSize: 14px, $lineNumber: 2, $lineHeight: 1.4) {
+    display: block;
+    display: -webkit-box;
+    font-size: $fontSize;
+    line-height: $lineHeight;
+    max-height: $fontSize * $lineNumber * $lineHeight;
+    overflow: hidden;
+    -webkit-line-clamp: $lineNumber;
+    /*! autoprefixer: off */
+    -webkit-box-orient: vertical;
+    /* autoprefixer: on */
+    text-overflow: ellipsis;
+    text-overflow: -o-ellipsis-lastline;
+}

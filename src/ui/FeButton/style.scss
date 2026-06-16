@@ -1,0 +1,239 @@
+@import "~@theme/styles";
+
+$fe-button--border-radius: 2rem;
+$fe-button--font-weight: $font-weight--bold;
+$fe-button--text-transform: uppercase;
+
+$fe-button--secondary--color: var(--color-button-text-secondary);
+$fe-button--secondary--background: var(--color-tertiary-3);
+$fe-button--secondary-hover--background: var(--color-tertiary-2);
+$fe-button--secondary-active--background: var(--color-tertiary-4);
+
+$fe-button--tertiary--color: var(--color-tertiary-1);
+$fe-button--tertiary--background: var(--color-secondary-1);
+$fe-button--tertiary-hover--background: var(--color-secondary-3);
+$fe-button--tertiary-active--background: var(--color-secondary-4);
+
+$fe-button--small--padding: 0.5rem 1rem;
+$fe-button--primary--hover--background: linear-gradient(270deg, var(--color-primary-3), var(--color-primary-3) 100%);
+$fe-button--primary--active--background: linear-gradient(270deg, var(--color-primary-4), var(--color-primary-4) 100%);
+$fe-button--primary--disable--opacity: 0.5;
+
+$fe-button--transparent-hover--color: var(--color-primary-1);
+$fe-button--transparent-active--color: $fe-button--transparent-hover--color;
+
+.fe-button {
+    white-space: nowrap;
+    border: none;
+    color: var(--color-layer-alt-1);
+    @include font-family--secondary;
+    @include btn-disabled;
+}
+
+
+@mixin shadow-button($color) {
+    $sizes: "small", "normal", "medium";
+
+    @each $size in $sizes {
+        &-#{$size} {
+            @include shadow($size, $color);
+        }
+    }
+}
+
+// TODO Вынести тематические переменные в файл стилей компонента по проекту
+.fe-button {
+    font-family: $font-family--secondary;
+    // @include font-size--main;
+    font-weight: $fe-button--font-weight;
+    @include transition(
+                    transition--box-shadow(),
+                    transition--color(),
+                    transition--background-color()
+    );
+    text-align: center;
+    border-radius: $fe-button--border-radius;
+    cursor: pointer;
+    outline: none;
+    box-shadow: none;
+    box-sizing: border-box;
+    text-transform: $fe-button--text-transform;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+
+    // --Color--
+    &--primary {
+        @include background-primary;
+
+        &:hover {
+            background: $fe-button--primary--hover--background;
+        }
+
+        &:active {
+            background: $fe-button--primary--active--background;
+        }
+    }
+
+    &--primary#{&}--disabled {
+        //@include background-disabled;
+        @include font-color--disabled;
+    }
+
+    &--secondary {
+        color: $fe-button--secondary--color;
+        background: $fe-button--secondary--background;
+
+        &:hover {
+            background: $fe-button--secondary-hover--background;
+            color: $fe-button--secondary--color;
+        }
+
+        &:active {
+            background: $fe-button--secondary-active--background;
+            color: $fe-button--secondary--color;
+        }
+    }
+
+    &--tertiary {
+        color: $fe-button--tertiary--color;
+        background: $fe-button--tertiary--background;
+
+        &:hover {
+            background: $fe-button--tertiary-hover--background;
+            color: $fe-button--tertiary--color;
+        }
+
+        &:active {
+            background: $fe-button--tertiary-active--background;
+            color: $fe-button--tertiary--color;
+        }
+    }
+
+    &--icon#{&}--ghost {
+        color: var(--color-text-body);
+        background-color: transparent;
+
+        &:hover {
+            background-color: var(--color-tertiary-2);
+            color: var(--color-text-body);
+        }
+
+        &:active {
+            background-color: var(--color-tertiary-4);
+            color: var(--color-text-body);
+        }
+    }
+
+    &--secondary#{&}--disabled {
+        @include font-color--disabled;
+    }
+
+    &--secondary#{&}--shadow {
+        @include shadow-button(var(--color-layer-alt-4));
+    }
+
+    // --Size--
+    &--extra-small {
+        @include font-size--ButtonStyleXS;
+        padding: $fe-button--small--padding;
+        border-radius: $fe-button--border-radius;
+        height: 2rem;
+    }
+
+    &--small {
+        @include font-size--ButtonStyleSmall;
+        font-weight: $font-weight--bold;
+        padding: $fe-button--small--padding;
+        border-radius: $fe-button--border-radius;
+    }
+
+    &--medium {
+        @include font-size--ButtonStyleMedium;
+        padding: 0.5rem 1.5rem;
+        border-radius: $fe-button--border-radius;
+    }
+
+    &__icon {
+        line-height: 100%;
+
+        & + * {
+            margin: 0 0 0 .5rem;
+        }
+    }
+
+    &__loading {
+        width: 1rem;
+        height: 1rem;
+        animation: rotating 2s linear infinite;
+    }
+
+    &--small #{&}__loading {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+
+    &--medium #{&}__loading {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+
+    &--icon {
+        border-radius: 50%;
+        padding: 0;
+    }
+
+    &--extra-small &__icon {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    &--icon#{&}--medium {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    &--icon#{&}--small {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+
+    // --Modifiers--
+    &--disabled {
+        opacity: $fe-button--primary--disable--opacity;
+        pointer-events: none;
+        cursor: default;
+    }
+
+    &--uppercase {
+        text-transform: uppercase;
+    }
+
+    &--text-left {
+        text-align: left;
+    }
+
+    &--text-right {
+        text-align: right;
+    }
+
+    &--full-width {
+        width: 100%;
+        justify-content: center;
+    }
+
+    &--full-width-mobile {
+        width: 100%;
+        justify-content: center;
+
+        @include media(M) {
+            width: auto;
+        }
+    }
+
+    &__right {
+        margin-left: .5rem;
+    }
+}

@@ -1,0 +1,21 @@
+@import "~@theme/styles";
+
+
+a.fe-link {
+    text-decoration: underline;
+}
+$link--theme: 'light';
+
+.fe-link {
+    &--primary {
+        @include link($link--theme, false);
+        color: $color-text-link-default;
+        font-weight: $font-weight--bold;
+    }
+
+    &--secondary {
+        @include link($link--theme, false);
+        color: $color-text-link-default;
+        font-weight: $font-weight--bold;
+    }
+}

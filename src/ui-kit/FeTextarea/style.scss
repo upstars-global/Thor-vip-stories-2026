@@ -1,0 +1,60 @@
+@import "~@theme/styles";
+
+.fe-textarea {
+    @include input;
+    height: auto;
+
+    &__left, &__right {
+        position: absolute;
+    }
+
+    &__left {
+        left: 1.5rem;
+    }
+
+    &__right {
+        right: 1.5rem;
+    }
+
+    &__left:not(:empty) {
+        margin-right: 0.5rem;
+    }
+
+    &__right:not(:empty) {
+        margin-left: 0.5rem;
+    }
+
+    &--text-center &__input {
+        text-align: center;
+    }
+
+    &--text-right &__input {
+        text-align: right;
+    }
+
+    &#{&}--error textarea {
+        border-color: var(--color-error);
+    }
+
+    &--disabled {
+        @include font-color--disabled;
+    }
+
+    &--font-big {
+        font-size: 1.5rem;
+    }
+
+    &__error-message {
+        position: absolute;
+        top: calc(100% + .25rem);
+        width: 100%;
+        margin-left: 0.5rem;
+        color: var(--color-error);
+    }
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}

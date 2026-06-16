@@ -1,0 +1,70 @@
+@import "~@theme/styles";
+
+.fe-card {
+    background-color: var( --color-layer-alt-4);
+    color: var(--color-text-alt);
+    position: relative;
+
+    &--primary {
+        @include background-primary;
+        @include font-color--white;
+    }
+
+    &--secondary {
+        @include background-secondary;
+        @include font-color--white;
+    }
+
+    &--success {
+        @include background-success;
+        @include font-color--white;
+    }
+
+    &--alert {
+        @include background-alert;
+        @include font-color--white;
+    }
+
+    &--danger {
+        @include background-danger;
+        @include font-color--white;
+    }
+
+    &--border {
+        @include fe-card--border;
+    }
+
+    &--disabled {
+        @include background-disabled;
+        @include font-color--black;
+    }
+
+    &--white {
+        @include background-white;
+        color: var(--color-text-on-opposite-back);
+    }
+
+    &--dark {
+        @include background-dark;
+    }
+
+    &--secondary-dark {
+        @include background-secondary-dark;
+    }
+
+    &--black {
+        @include background-black;
+    }
+
+    &--border-radius-xs {
+        border-radius: var(--border-radius-xs);
+    }
+
+    &--border-radius-s {
+        border-radius: var(--border-radius-s);
+    }
+
+    &--border-radius-m {
+        border-radius: var(--border-radius-m);
+    }
+}

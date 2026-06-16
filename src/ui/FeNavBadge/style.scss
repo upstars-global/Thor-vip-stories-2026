@@ -1,0 +1,19 @@
+@import "~@theme/styles";
+.fe-nav-badge {
+    @include font-size--SmallCaption($weight: $font-weight--bold);
+    border-radius: var(--border-radius-xs);
+    height: auto;
+    padding: 0 .25rem;
+    &--primary {
+        background: var(--color-primary-1);
+    }
+    &--error {
+        background: var(--color-error);
+    }
+    &--black {
+        color: var(--color-text-on-opposite-back);
+    }
+    &--white {
+        color: var(--color-text-alt);
+    }
+}

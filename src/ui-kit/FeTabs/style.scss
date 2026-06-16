@@ -1,0 +1,35 @@
+@import "~@theme/styles";
+
+.fe-tabs {
+    &__header {
+        background: transparent;
+        border: 1px solid $color-tertiary-3;
+        border-radius: $border-radius-M;
+        padding: 0.25rem;
+    }
+}
+
+.fe-tabs {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    position: relative;
+
+    &__header {
+        display: flex;
+        justify-content: center;
+        position: relative;
+    }
+
+    &__slider {
+        display: block;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 2px;
+        background: $color-text-menu-active;
+        border-radius: 2px 2px 0 0;
+        @include multiple-transition(width transform, 150ms, ease-in-out);
+    }
+}

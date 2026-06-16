@@ -1,0 +1,37 @@
+@import "~@theme/styles";
+
+.promo-code {
+
+    &__container-right {
+        width: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    &__container-left {
+        width: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    &__icon {
+        &-ticket {
+            color: $color-text-body;
+        }
+
+        &-error {
+            color: $color-error;
+        }
+
+        &-display {
+            color: $color-text-body;
+
+            &:hover {
+                color: $color-text-alt;
+            }
+        }
+    }
+
+}

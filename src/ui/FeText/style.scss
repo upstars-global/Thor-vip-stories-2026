@@ -1,0 +1,79 @@
+@import "~@theme/styles";
+
+.fe-text {
+    @include font-size--main;
+    margin: 0;
+
+    // --Color--
+    &--white {
+        @include font-color--white;
+    }
+
+    &--black {
+        @include font-color--black;
+    }
+
+    &--primary {
+        @include font-color--primary;
+    }
+
+    &--secondary {
+        @include font-color--secondary;
+    }
+
+    &--success {
+        @include font-color--success;
+    }
+
+    &--alert {
+        @include font-color--alert;
+    }
+
+    &--danger {
+        @include font-color--danger;
+    }
+
+    &--disabled {
+        @include font-color--disabled;
+    }
+
+    &--gray {
+        @include font-color--gray;
+    }
+
+    // --Size--
+    &--h1, &--h1 > * {
+        @include font-size--Header1;
+    }
+
+    &--h2, &--h2 > * {
+        @include font-size--Header2;
+    }
+
+    &--h3, &--h3> * {
+        @include font-size--Header3;
+    }
+
+    &--regular {
+        font-weight: $font-weight--normal;
+    }
+
+    &--small {
+        @include font-size--Caption2;
+        display: block; // Replace after optimize render function
+    }
+
+    &--small-regular {
+        @include font-size--Caption2($font-weight--normal);
+        display: block; // Replace after optimize render function
+    }
+
+    // --Modifiers--
+    &--text-center {
+        text-align: center;
+    }
+
+    &--text-right {
+        text-align: right;
+    }
+}

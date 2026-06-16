@@ -1,0 +1,185 @@
+@import "~@theme/styles";
+
+
+
+
+
+
+// @mixin shadow-button($color) {
+//     $sizes: "small", "normal", "medium";
+
+//     @each $size in $sizes {
+//         &-#{$size} {
+//             @include shadow($size, $color);
+//         }
+//     }
+// }
+
+// TODO Вынести тематические переменные в файл стилей компонента по проекту
+.fe-button {
+    font-weight: $font-weight--bold;
+    @include transition(
+            transition--box-shadow(),
+            transition--color(),
+            transition--background-color()
+    );
+    text-align: center;
+    border-radius: $border-radius-M;
+    cursor: pointer;
+    outline: none;
+    box-shadow: none;
+    box-sizing: border-box;
+    border: none;
+
+    // --Color--
+    &--primary {
+        background: $color-primary-1;
+        color: $color-on-light-back;
+
+        &:hover {
+            background: $color-primary-2;
+        }
+
+        &:active, &.active {
+            background: $color-primary-4;
+        }
+    }
+
+    &--primary#{&}--disabled {
+        @include font-color--disabled;
+    }
+
+    &--secondary {
+        color: $color-on-dark-back;
+        background: $color-secondary-6;
+
+        &:hover {
+            background: $color-secondary-2;
+            color: $color-on-dark-back;
+        }
+
+        &:active, &.active {
+            background: $color-secondary-4;
+            color: $color-on-dark-back;
+        }
+    }
+
+    &--secondary#{&}--disabled {
+        @include font-color--disabled;
+    }
+
+    &--tertiary {
+        color: $color-on-dark-back;
+        background: transparent;
+        box-shadow: inset 0 0 0 1px $color-secondary-6;
+
+        &:hover {
+            background: $color-tertiary-2;
+            box-shadow: none;
+        }
+
+        &:active, &.active {
+            background: $color-tertiary-1;
+            color: $color-on-dark-back;
+            box-shadow: none;
+        }
+    }
+
+    &--icon#{&}--ghost {
+        color: $color-text-body;
+        background-color: transparent;
+
+        &:hover {
+            background-color: $color-tertiary-2;
+            color: $color-text-alt;
+        }
+
+        &:active, &.active {
+            background-color: $color-tertiary-3;
+            color: $color-text-alt;
+        }
+    }
+
+    &--secondary#{&}--disabled {
+        @include font-color--disabled;
+    }
+
+    // &--secondary#{&}--shadow {
+    //     @include shadow-button($color-text-alt);
+    // }
+
+    /// --Size--
+    &--extra-small {
+        @include font-size--ButtonStyleXS;
+        padding: 0.5rem 1rem;
+        border-radius: $border-radius-M;
+        height: 2rem;
+    }
+
+    &--small {
+        @include font-size--ButtonStyleSmall;
+        padding: 0.5rem 1rem;
+        border-radius: $border-radius-M;
+    }
+
+    &--medium {
+        @include font-size--ButtonStyleMedium;
+        padding: 0.5rem 1.5rem;
+        border-radius: $border-radius-M;
+    }
+
+    &__icon {
+        margin: auto;
+        line-height: 100%;
+    }
+
+    &--icon {
+        margin: auto;
+        border-radius: 50%;
+        padding: 0;
+    }
+
+    &--icon#{&}--medium {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    &--icon#{&}--small {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+
+    // --Modifiers--
+    &--disabled {
+        pointer-events: none;
+        cursor: default;
+    }
+
+    &--uppercase {
+        text-transform: uppercase;
+    }
+
+    &--text-left {
+        text-align: left;
+    }
+
+    &--text-right {
+        text-align: right;
+    }
+
+    &--full-width {
+        width: 100%;
+    }
+    &--full-width-mobile {
+        width: 100%;
+        justify-content: center;
+
+        @include media(M) {
+            width: auto;
+        }
+    }
+
+    &__right {
+        margin-left: 0.5rem;
+    }
+}

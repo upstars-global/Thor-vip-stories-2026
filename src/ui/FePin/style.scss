@@ -1,0 +1,26 @@
+@import "~@theme/styles";
+
+$fe-pin-v2__counter--background: var(--color-error);
+
+
+.fe-pin-v2 {
+    position: relative;
+
+    &__counter {
+        @include font-color--white;
+        @include font-size--small;
+        background: $fe-pin-v2__counter--background;
+        font-weight: $font-weight--bold;
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 50%;
+        text-align: center;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
