@@ -1888,7 +1888,9 @@ $chip-bg: rgba(40, 58, 150, 0.55);
   margin: 0;
   color: #fafafa;
   font-family: 'Sora', sans-serif;
-  font-size: px(70);
+  /* --fit (<=1) is set per-card by fitCards() so long localized strings shrink
+     to stay inside the canvas instead of overflowing the viewport */
+  font-size: calc(70 * var(--u) * var(--fit, 1));
   font-weight: 500;
   line-height: 1.1;
   white-space: nowrap;
@@ -1943,7 +1945,7 @@ $chip-bg: rgba(40, 58, 150, 0.55);
   margin: 0;
   color: #fafafa;
   font-family: 'Sora', sans-serif;
-  font-size: px(70);
+  font-size: calc(70 * var(--u) * var(--fit, 1));
   font-weight: 500;
   line-height: 1.1;
   white-space: nowrap;
@@ -2001,7 +2003,7 @@ $chip-bg: rgba(40, 58, 150, 0.55);
   margin: 0;
   color: #fafafa;
   font-family: 'Sora', sans-serif;
-  font-size: px(70);
+  font-size: calc(70 * var(--u) * var(--fit, 1));
   font-weight: 500;
   line-height: 1.1;
   white-space: nowrap;
@@ -2069,89 +2071,158 @@ $chip-bg: rgba(40, 58, 150, 0.55);
   white-space: nowrap;
 }
 
-/* number scenes */
+/* ---- Season 2 flow scenes: absolute Figma coordinates on the cover canvas ----
+   All values are raw Figma px (1080x1920) via px()/at-cx(); each element is
+   pinned exactly where the mock-up places it. GSAP animates y/scale/opacity and
+   preserves the translateX(-50%), so centring survives the entrance tweens. */
+
+/* number scenes (Figma 31550:220845) */
 .scene-num-label {
+  @include at-cx(684, 737);
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+  font-size: px(55);
+  line-height: normal;
+  text-align: center;
+  color: #fff;
   opacity: 0.85;
-  margin-bottom: 2vh;
 }
 .big-number {
+  @include at-cx(776, 480);
   font-family: 'Sora', sans-serif;
   font-weight: 800;
-  font-size: 22vh;
-  line-height: 1;
-  color: #fff;
+  font-size: px(450);
+  line-height: normal;
+  color: #fafafa;
   text-align: center;
-  left: 50%;
-  transform: translateX(-50%);
-  position: relative;
+  white-space: nowrap;
 }
 
-/* game of the season */
+/* game of the season (Figma 31550:220973) */
 .scene-game-label {
+  @include at-cx(222, 743);
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+  font-size: px(55);
+  line-height: normal;
+  text-align: center;
+  color: #fff;
   opacity: 0.85;
-  margin-bottom: 1vh;
 }
 .scene-game-name {
+  @include at-cx(315, 994);
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: px(80);
+  line-height: normal;
   text-transform: uppercase;
-  margin-bottom: 3vh;
+  text-align: center;
+  color: #fff;
 }
 .game-frame {
-  position: relative;
-  height: 40vh;
-  width: 28.6vh;
-  aspect-ratio: 5/7;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0.5vh;
-  border-radius: 2.4vh;
-  border: 0.3vh solid $neon-cyan;
+  @include at-cx(646, 737);
+  height: px(1054);
+  padding: px(8);
+  border-radius: px(28);
+  border: px(4) solid $neon-cyan;
   box-shadow:
-    0 0 2.4vh rgba(56, 224, 255, 0.65),
-    inset 0 0 1.6vh rgba(56, 224, 255, 0.35);
+    0 0 px(46) rgba(56, 224, 255, 0.65),
+    inset 0 0 px(30) rgba(56, 224, 255, 0.35);
 }
 .game-thumb {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 2vh;
+  border-radius: px(20);
 }
 
-/* lock */
+/* lock (Figma 31550:220909) */
 .scene-lock-text {
-  margin-top: 36vh;
+  @include at-cx(1359, 737);
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+  font-size: px(55);
+  line-height: normal;
+  text-align: center;
+  color: #fff;
   opacity: 0.92;
 }
 
-/* flame out */
+/* flame out (Figma 31550:220935) */
 .scene-flame-title {
-  margin-bottom: 2vh;
+  @include at-cx(840, 581);
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: px(95);
+  line-height: normal;
+  text-transform: uppercase;
+  text-align: center;
+  color: #fff;
 }
 .scene-flame-sub {
+  @include at-cx(1467, 937);
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+  font-size: px(55);
+  line-height: normal;
+  text-align: center;
+  color: #fff;
   opacity: 0.8;
 }
 
-/* final */
+/* final (Figma 31550:220942) */
 .scene-final-top {
+  @include at-cx(837, 581);
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+  font-size: px(55);
+  line-height: normal;
+  text-align: center;
+  color: #fff;
   opacity: 0.85;
-  margin-bottom: 1vh;
 }
+.scene-final-name {
+  @include at-cx(929, 533);
+  /* the name hugs its content on one line (Figma box fits "Sofiia!", but real
+     names vary); centred via translateX(-50%) so length never breaks layout */
+  width: auto;
+  white-space: nowrap;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: px(140);
+  line-height: 1.1;
+  text-align: center;
+  color: #fafafa;
+}
+/* primary CTA pill — Figma 31703:223253 (948x147, r86.5, #00eda6) */
 .cta-primary {
-  background: linear-gradient(180deg, #3ff0a8 0%, #16c98a 100%);
-  color: #053;
-  color: #06402b;
+  @include at-cx(1530, 948);
+  height: px(147);
+  padding: 0;
+  border-radius: px(86.5);
+  font-size: px(61.24);
+  font-weight: 700;
+  background: #00eda6;
+  color: #110e1b;
+  align-items: center;
 }
+/* replay row — Figma 31703:223257 (top 1736, h89) */
 .cta-replay {
-  top: 81vh;
+  @include at-cx(1736, 510);
+  width: auto;
+  height: px(89);
+  padding: 0;
+  border-radius: 0;
+  font-size: px(55);
+  font-weight: 700;
   background: transparent;
   color: #fff;
-  gap: 1.2vh;
+  gap: px(16);
   align-items: center;
-  @include media(M) {
-    top: 77vh;
-  }
 }
 .watch_again_icon {
-  width: 3vh;
-  height: 3vh;
+  width: px(56);
+  height: px(56);
+  margin: 0;
   filter: brightness(0) invert(1);
 }

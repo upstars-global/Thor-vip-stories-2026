@@ -53,6 +53,18 @@ $figma-height: 1920;
   top: px($y);
 }
 
+// Horizontally-centred absolute box on the cover canvas: pins the Figma top and
+// a design width, centring on the canvas mid-line (1080/2). transform keeps the
+// translateX(-50%) that GSAP preserves while animating y/scale/opacity.
+@mixin at-cx($top, $width) {
+  position: absolute;
+  top: px($top);
+  left: 50%;
+  transform: translateX(-50%);
+  width: px($width);
+  max-width: none;
+}
+
 @mixin media($breakpoint) {
     @if $breakpoint == M {
       @media (min-width: 768px) {
