@@ -1729,45 +1729,47 @@ $chip-bg: rgba(40, 58, 150, 0.55);
 /* slots / days */
 .slot-cards {
   position: absolute;
-  top: to-frame-percent-y(787);
+  top: px(787);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: to-dvh(24);
-  width: to-dvh(881);
-  height: to-dvh(429);
+  gap: px(24);
+  width: px(881);
+  height: px(429);
   margin: 0;
 }
 .slot-card {
   position: relative;
   flex: 0 0 auto;
-  width: to-dvh(247);
-  height: to-dvh(313);
+  width: px(247);
+  height: px(313);
 }
 /* the dark card box that clips the spinning reel */
 .slot-window {
   position: absolute;
   inset: 0;
-  border-radius: to-dvh(24);
+  border-radius: px(24);
   overflow: hidden;
   background: #1d2386;
-  border: to-dvh(2) solid #0032ff;
+  border: px(2) solid #0032ff;
 }
-/* vertical reel of digits; --reel-y (dvh) is driven by GSAP */
+/* vertical reel of digits; --reel-y is a UNITLESS design-px offset driven by
+   GSAP; CSS multiplies it by --u so the reel scales with the cover canvas and
+   stays correct on resize (GSAP can only interpolate plain numbers). */
 .slot-reel {
-  --reel-y: 0dvh;
+  --reel-y: 0;
   position: absolute;
   top: 0;
   left: 50%;
-  width: to-dvh(113);
-  margin-left: to-dvh(-56.5);
+  width: px(113);
+  margin-left: px(-56.5);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: to-dvh(6);
-  transform: translateY(var(--reel-y));
+  gap: px(6);
+  transform: translateY(calc(var(--reel-y) * var(--u)));
   will-change: transform;
 }
 /* single neon glow frame (image) covering the whole card group, as in Figma */
@@ -1785,7 +1787,7 @@ $chip-bg: rgba(40, 58, 150, 0.55);
   width: 100%;
   font-family: 'Sora', sans-serif;
   font-weight: 800;
-  font-size: to-dvh(160.973);
+  font-size: px(160.973);
   color: #605fd1;
   line-height: 1.1;
   text-align: center;
