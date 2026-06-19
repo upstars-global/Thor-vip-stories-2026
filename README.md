@@ -1,5 +1,18 @@
 # VIP Stories (Thor)
 
+> ## ⚠️ Season 2 (редизайн) — актуальний стан
+>
+> Реалізовано редизайн Season 2. Нижченаведені розділи 1–9 частково описують **Season 1**
+> (9 сегментів, вибір відео за `fire_type`) і лишені як історичний контекст. Актуальна правда — тут:
+>
+> - **Єдине відео** для всіх: `public/video/animatic.{webm,mp4}`, `object-fit: cover` (без `videoMap`/`fire_type`-вибору). `fire_type` лишений як no-op для сумісності старих посилань.
+> - **21 сцена** описана конфігом `SCENES` у [scripts.js](src/components/Stories/scripts.js) — єдине джерело порядку, skip-прапорців і тайм-кодів (`vstart`/`dur`). Архітектура руху та сама: Options API `setup()`, мастер-таймлайн + під-таймлайн на сцену, прогрес = середнє по активних сегментах, перемотування відео на старт кожної сцени.
+> - **Типи сцен**: intro / greeting / slots / fall (чипи) / level (куб) / number / netball / game / lock / flameOut / final.
+> - **Маппинг рівнів (рішення C)**: `level` порожній/невідомий → сцена рівня пропускається; `REGULAR` → куб **Iron** (прапор `SHOW_IRON_FOR_REGULAR`); решта → свій куб. Кубки: `img/levels/{Iron,Bronze,Silver,Gold,Plathinum,Diamond}.png`.
+> - **Нові параметри**: `biggest_hit`, `live_wins`, `betting_wins`, `gifts_count` (див. оновлену таблицю в розділі 4).
+> - **Тайм-коди — провізорні** (рівномірні в `SCENES`), фінал вирівняно на кінець відео. Точна калібровка — після фінального відео.
+> - Маркетингова документація: `_input/marketing-doc-season2.md`.
+> - Дев-хук `window.__story` (тільки DEV-режим) для скрабу таймлайну при QA.
 
 ## 1. Призначення
 
@@ -106,19 +119,25 @@
 https://winspirit.com/stories/vip?name=Sofia&days=195&level=SILVER&top_winnings=250&cashback=400&favorite_game_thunbnail=https://winspirit.com/svc/img/i/WinSpirit/games/Fruit_Million_halloween_edition_400x560_jpg&favorite_game_name=Book%20of%20wealth&fire_type=&final_link=https://bit.ly/3XrsdUX
 ```
 
+> Таблиця нижче — **актуальний контракт Season 2** (відповідає `parseParams`/`computeSkips` у поточному [scripts.js](src/components/Stories/scripts.js)).
+
 | Параметр | Призначення | Поведінка / умова пропуску |
 |---|---|---|
-| `name` | Ім'я/нік гравця | Порожнє -> просто привітання без імені |
-| `days` | Днів на проєкті | `days < 1` або порожнє -> текст `many_days` замість числа |
-| `level` | VIP-рівень | `REGULAR / BRONZE / SILVER / GOLD / PLATINUM / DIAMOND`. `REGULAR` або порожнє -> `scip_vip_level=true` (секцію рівня пропущено) |
-| `top_winnings` | Топовий виграш | Кома -> крапка, прибираються пробіли, округлення. `top_winnings <= 50` -> `scip_top_wining=true` (пропуск) |
-| `cashback` | Кешбек | `cashback < 1` -> `scip_cashback=true` (пропуск) |
-| `favorite_game_thunbnail` | URL зображення гри | **Назва містить друкарську помилку (`thunbnail`)** — саме так читається в коді. Домен зображення не має бути забаненим у гравця |
-| `favorite_game_name` | Назва гри | `+` замінюються на пробіл. Пробіли в URL краще кодувати як `%20` |
-| `final_link` | Лінк подарунку (-> `end_link`) | Використовується і кнопкою подарунка, і хрестиком. Домен має збігатися з доменом сторіс |
-| `fire_type` | Тип вогню 1–4 | Якщо задано вручну — має пріоритет. Інакше авто (див. 4.1). Обирає відеокліп |
-| `language` / `user_language` | Мова (легасі) | Фолбек: `navigator.language` -> інакше `en` |
-| `currency` / `user_currency` | Валюта (легасі) | Дефолт `EUR` |
+| `name` | Ім'я/нік гравця | Порожнє -> привітання без імені |
+| `days` | Днів на проєкті (сцена «слоти») | Порожнє або `< 1` -> сцену пропущено |
+| `level` | VIP-рівень | `REGULAR / IRON / BRONZE / SILVER / GOLD / PLATINUM / DIAMOND`. Порожнє/невідоме -> пропуск; `REGULAR` -> куб **Iron**; решта -> свій куб |
+| `top_winnings` | Топовий виграш | Кома->крапка, прибираються пробіли, округлення. `<= 50` або порожнє -> пропуск |
+| `biggest_hit` | Найбільший single-win | `<= 50` або порожнє -> пропуск |
+| `live_wins` | Сумарні виграші Live | `<= 50` або порожнє -> пропуск |
+| `betting_wins` | Виграші в ставках | `<= 50` або порожнє -> пропуск |
+| `cashback` | Кешбек | `< 1` або порожнє -> пропуск |
+| `gifts_count` | К-сть подарунків у колекції | `< 1` або порожнє -> пропуск |
+| `favorite_game_thunbnail` | URL зображення гри | **Друкарська помилка `thunbnail`** — саме так читається. Домен не має бути забаненим у гравця |
+| `favorite_game_name` | Назва гри | `+` -> пробіл. Пробіли краще кодувати `%20`. Порожні разом з тумбнейлом -> сцена гри + її лід-ін пропускаються |
+| `final_link` | Лінк подарунку (-> `end_link`) | Кнопка подарунку + хрестик. Порожнє -> кнопку приховано (fallback), хрестик лише закриває. Домен має збігатися з доменом сторіс |
+| `fire_type` | **Легасі, no-op** | Відео єдине; параметр більше не обирає кліп. Лишений для сумісності старих посилань |
+| `language` / `user_language` | Мова | Фолбек: `navigator.language` -> інакше `en` |
+| `currency` / `user_currency` | Валюта | Дефолт `EUR` (у number-сценах Season 2 валюта не виводиться) |
 
 Логіка thumbnail-секції (сегмент 7) керується трьома прапорцями:
 
@@ -166,7 +185,8 @@ https://winspirit.com/stories/vip?name=Sofia&days=195&level=SILVER&top_winnings=
 
 ## 7. Локалізація
 
-- Файли перекладів: `src/components/Stories/localization/{en,it,de,fr}.json`.
+- Файли перекладів: `src/components/Stories/localization/{en,it,de,fr,pt}.json`.
+- Season 2: EN — джерело правди (реалізований). IT/PT/FR/DE наразі = функціональний EN-fallback; фінальний локалізований текст переноситься з Figma-кадрів локалізацій (посилання в `_input/figma-links.md`) по ключах `en.json`.
 - Доступні мови перелічені в `localization/available-languages.json`; у коді вони мапляться через `languageMap`.
 - Вибір мови: параметр `language`/`user_language` -> якщо немає, `navigator.language` -> фолбек `en`.
 - Усі тексти в шаблоні беруться з об'єкта `texts` (наприклад `{{ texts.hello }}`).

@@ -1,6 +1,4 @@
-
-
-import { ref, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, nextTick } from "vue";
 import StoriesTopBar from "@components/Stories/UI/storiesTopBar.vue";
 import mobileControlArea from "@components/Stories/UI/mobileControlArea.vue";
 import desktopControlButton from "@components/Stories/UI/desktopControlButton.vue";
@@ -8,32 +6,86 @@ import desktopPausePlayButton from "@components/Stories/UI/desktopPausePlayButto
 import CloseButton from "@components/Stories/UI/closeButton.vue";
 import gsap from "gsap";
 import availableLanguages from "/src/components/Stories/localization/available-languages.json";
-import en from '@components/Stories/localization/en.json';
-import it from '@components/Stories/localization/it.json';
-import de from '@components/Stories/localization/de.json';
-import fr from '@components/Stories/localization/fr.json';
+import en from "@components/Stories/localization/en.json";
+import it from "@components/Stories/localization/it.json";
+import de from "@components/Stories/localization/de.json";
+import fr from "@components/Stories/localization/fr.json";
+import pt from "@components/Stories/localization/pt.json";
 import story_icon from "@components/Stories/img/avatar.webp";
-import icon_replay from "@components/Stories/img/icons/icon_replay.svg";
-import clip1 from '@components/Stories/img/video/1.mp4';
-import clip2 from '@components/Stories/img/video/2.mp4';
-import clip3 from '@components/Stories/img/video/3.mp4';
-import clip4 from '@components/Stories/img/video/4.mp4';
-import regular from '@components/Stories/img/statuses/regular_512.webp';
-import bronze from '@components/Stories/img/statuses/bronze_512.webp';
-import silver from '@components/Stories/img/statuses/silver_512.webp';
-import gold from '@components/Stories/img/statuses/gold_512.webp';
-import platinum from '@components/Stories/img/statuses/platinum_512.webp';
-import diamond from '@components/Stories/img/statuses/diamond_512.webp';
-import dec_1 from '@components/Stories/img/dec_1.webp';
-import dec_2 from '@components/Stories/img/dec_2.webp';
-import dec_3 from '@components/Stories/img/dec_3.webp';
-import top_logo from '@components/Stories/img/top_logo.webp';
 import watchAgainIcon from "@components/Stories/img/icons/icon_replay.svg";
 import playButton from "@components/Stories/img/icons/play_button.svg";
+import top_logo from "@components/Stories/img/top_logo.webp";
+import ironCube from "@components/Stories/img/levels/Iron.png";
+import bronzeCube from "@components/Stories/img/levels/Bronze.png";
+import silverCube from "@components/Stories/img/levels/Silver.png";
+import goldCube from "@components/Stories/img/levels/Gold.png";
+import platinumCube from "@components/Stories/img/levels/Plathinum.png";
+import diamondCube from "@components/Stories/img/levels/Diamond.png";
+import slotFrame from "@components/Stories/img/slot-frame.png";
 
+// --- VIP level mapping (decision C) ---------------------------------------
+const SHOW_IRON_FOR_REGULAR = true;
+const LEVEL_CUBES = {
+  IRON: ironCube,
+  BRONZE: bronzeCube,
+  SILVER: silverCube,
+  GOLD: goldCube,
+  PLATINUM: platinumCube,
+  DIAMOND: diamondCube,
+};
+const LEVEL_WORD_KEY = {
+  IRON: "vip_level_regular",
+  REGULAR: "vip_level_regular",
+  BRONZE: "vip_level_bronze",
+  SILVER: "vip_level_silver",
+  GOLD: "vip_level_gold",
+  PLATINUM: "vip_level_platinum",
+  DIAMOND: "vip_level_diamond",
+};
 
+// --- Slot reel geometry (mirrors Figma node 31550:220705) -----------------
+// Figma frame is 1080x1920; px -> dvh factor = 100 / 1920.
+const PX_TO_DVH = 100 / 1920;
+const SLOT_STEP_DVH = 183.07 * PX_TO_DVH; // digit cell (160.973 * 1.1) + 6px gap
+const SLOT_BASE_DVH = 67.965 * PX_TO_DVH; // translateY that centres reel cell 0
+const SLOT_COPIES = 8; // repeated 0-9 blocks stacked in the reel
+const SLOT_REST_COPY = 6; // copy index whose digit rests in the window
+const SLOT_SPINS = 3; // full 0-9 cycles travelled before locking
+// translateY (in dvh) that centres reel cell `k` inside the card window
+const slotCellY = (k) => SLOT_BASE_DVH - SLOT_STEP_DVH * k;
 
-
+// --- Scene config (single source of truth) --------------------------------
+// vstart = absolute timecode in animatic (provisional, calibrate in "timecodes" phase).
+// dur = display length of the scene's overlay timeline.
+// skip = key into the reactive `skip` object (undefined => never skipped).
+// Order mirrors the redesigned Figma deck (19 scenes, file cqRRGIY5o8LB7rgm4WV5E2).
+// vstart/dur calibrated to animatic.webm (length 117.0s, 2026-06-19). The animatic
+// holds 17 visual cuts at ~6s each; two long cuts are shared by two scenes:
+//   - the 12s "sparks" cut (77.966-89.966) covers scenes 14 (what game) + 15 (game)
+//   - the 15s final cut (101.966-117.0) covers scenes 18 (flameOut) + 19 (final)
+// vstart values are contiguous so the background plays without jumps; recalibrate
+// once the final motion video lands (durations may shift slightly).
+const SCENES = [
+  { id: 1,  type: "intro",    vstart: 0,       dur: 5.966 },               // 220950 VIP logo
+  { id: 2,  type: "greeting", vstart: 5.966,   dur: 6 },                   // 220681 Hi, {name}!
+  { id: 3,  type: "slots",    vstart: 11.966,  dur: 6,  skip: "slots" },   // 220695 day {days}
+  { id: 4,  type: "fall",     vstart: 17.966,  dur: 6 },                   // 220747 journey
+  { id: 5,  type: "level",    vstart: 23.966,  dur: 6,  skip: "level" },   // 220801 level cube
+  { id: 6,  type: "fall",     vstart: 29.966,  dur: 6 },                   // 220817 moments
+  { id: 7,  type: "number",   vstart: 35.966,  dur: 6,  skip: "top" },     // 220845 top winnings
+  { id: 8,  type: "fall",     vstart: 41.966,  dur: 6 },                   // 220760 live tables
+  { id: 9,  type: "number",   vstart: 47.966,  dur: 6,  skip: "live" },    // 220858 live wins
+  { id: 10, type: "netball",  vstart: 53.966,  dur: 6 },                   // 220779 you trusted
+  { id: 11, type: "number",   vstart: 59.966,  dur: 6,  skip: "betting" }, // 220871 betting wins
+  { id: 12, type: "fall",     vstart: 65.966,  dur: 6 },                   // 220897 experiments
+  { id: 13, type: "number",   vstart: 71.966,  dur: 6,  skip: "cashback" },// 220884 cashback
+  { id: 14, type: "fall",     vstart: 77.966,  dur: 6 },                   // 220994 what game
+  { id: 15, type: "game",     vstart: 83.966,  dur: 6,  skip: "game" },    // 220973 game of season
+  { id: 16, type: "lock",     vstart: 89.966,  dur: 6 },                   // 220909 more rewards
+  { id: 17, type: "number",   vstart: 95.966,  dur: 6,  skip: "gifts" },   // 220920 gifts (244)
+  { id: 18, type: "flameOut", vstart: 101.966, dur: 6 },                   // 220935 season ends
+  { id: 19, type: "final",    vstart: 107.966, dur: 9.034 },               // 220942 final / CTA
+];
 
 export default {
     name: "Bonuses",
@@ -46,378 +98,155 @@ export default {
     },
     setup() {
         const defaultDuration = 0.3;
+    const reach_end = ref(false);
+
+    const notify = (msg) => {
+      try {
+        window.parent.postMessage(msg, "*");
+      } catch (e) {
+        /* noop */
+      }
+    };
+
         const tl = gsap.timeline({
             defaults: { duration: defaultDuration, ease: "power1.inOut" },
             onUpdate: () => {
                 currentTime.value = tl.time();
-            }
-        });
-        const reach_end = ref(false);
-        const segment1_time = ref(0);
-        const segment2_time = ref(0);
-        const segment3_time = ref(0);
-        const segment4_time = ref(0);
-        const segment5_time = ref(0);
-        const segment6_time = ref(0);
-        const segment7_time = ref(0);
-        const segment8_time = ref(0);
-        const segment9_time = ref(0);
-        const segment1_duration = ref(0);
-        const segment2_duration = ref(0);
-        const segment3_duration = ref(0);
-        const segment4_duration = ref(0);
-        const segment5_duration = ref(0);
-        const segment6_duration = ref(0);
-        const segment7_duration = ref(0);
-        const segment8_duration = ref(0);
-        const segment9_duration = ref(0);
-        const videoSrc = ref('');
-        const days = ref(false);
-        const level = ref('');
-        const top_winnings = ref(0);
-        const freespins = ref(0);
-        const cashback = ref(0);
-        const favorite_game_thunbnail = ref('');
-        const favorite_game_name = ref('');
-        const fire_type = ref(1);
-        const end_link = ref('');
-        const vip_level_src = ref('');
-        const scip_vip_level = ref(true);
-        const scip_top_wining = ref(true);
-        const scip_cashback = ref(true);
-        const scip_thumbnail = ref(true);
-        const hide_thumbnail = ref(true);
-        const change_thumbnail_text_position = ref(false);
-        const videoPlayer = ref(null);
-        const isRewinding = ref(false);
-        const segment1StartTime = 0; // Начало сегмента 1
-        const segment2StartTime = 7.4; // Начало сегмента 2
-        const segment3StartTime = 12.7; // Начало сегмента 3
-        const segment4StartTime = 20.7; // Начало сегмента 4 (scip_vip_level)
-        const segment5StartTime = 25.8; // Начало сегмента 5 (scip_top_wining)
-        const segment6StartTime = 30.9; // Начало сегмента 6 (scip_cashback)
-        const segment7StartTime = 36; // Начало сегмента 7 (scip_thumbnail)
-        const segment8StartTime = 41.1; // Начало сегмента 8
-        const segment9StartTime = 64; // Начало сегмента 9
-        const isVideoPlaying = ref(false);
-        const showPlayButton = ref(false);
-        const checkVideoPlayback = () => {
-            if (videoPlayer.value.paused) {
-            isVideoPlaying.value = false;
-            showPlayButton.value = true;
-            tl.pause();
-            } else {
-            isVideoPlaying.value = true;
-            showPlayButton.value = false;
-            }
-        };
-        
-        const playVideo = () => {
-            videoPlayer.value.play();
-            tl.play();
-            showPlayButton.value = false;
-        };
+        if (!reach_end.value && tl.duration() > 0 && tl.progress() > 0.995) {
+          reach_end.value = true;
+          notify("reach_end");
+        }
+      },
+    });
 
-        
-       
-        const segment1 = gsap.timeline({
-            defaults: { duration: defaultDuration, ease: "power1.inOut" },
-            onUpdate: () => {
-                segment1_time.value = segment1.time();
-            }
-        });
-        const segment2 = gsap.timeline({
-            defaults: { duration: defaultDuration, ease: "power1.inOut" },
-            onUpdate: () => {
-                segment2_time.value = segment2.time();
-            }
-        });
-        const segment3 = gsap.timeline({
-            defaults: { duration: defaultDuration, ease: "power1.inOut" },
-            onUpdate: () => {
-                segment3_time.value = segment3.time();
-            }
-        });
-        const segment4 = gsap.timeline({
-            defaults: { duration: defaultDuration, ease: "power1.inOut" },
-            onUpdate: () => {
-                segment4_time.value = segment4.time();
-            }
-        });
-        const segment5 = gsap.timeline({
-            defaults: { duration: defaultDuration, ease: "power1.inOut" },
-            onUpdate: () => {
-                segment5_time.value = segment5.time();
-            }
-        });
-        const segment6 = gsap.timeline({
-            defaults: { duration: defaultDuration, ease: "power1.inOut" },
-            onUpdate: () => {
-                segment6_time.value = segment6.time();
-            }
-        });
-        const segment7 = gsap.timeline({
-            defaults: { duration: defaultDuration, ease: "power1.inOut" },
-            onUpdate: () => {
-                segment7_time.value = segment7.time();
-            }
-        });
-        const segment8 = gsap.timeline({
-            defaults: { duration: defaultDuration, ease: "power1.inOut" },
-            onUpdate: () => {
-                segment8_time.value = segment8.time();
-            }
-        });
-        const segment9 = gsap.timeline({
-            defaults: { duration: defaultDuration, ease: "power1.inOut" },
-            onUpdate: () => {
-                segment9_time.value = segment9.time();
-            }
-        });
-        const texts = ref('en');
-        const currency = ref('EUR');
-        const name = ref('');
-        const player_name = ref('');
-        const players = ref(1150);
-        const prizes = ref(965);
-        const top_prize = ref(5000);
+    // Per-segment progress tracking (preserves original "average per segment" model)
+    const segTimes = reactive({});
+    const segDurations = reactive({});
+    const builtIds = ref([]);
+
+    // --- Video ---------------------------------------------------------------
+    const base = import.meta.env.BASE_URL || "/";
+    const videoWebm = ref(`${base}video/animatic.webm`);
+    const videoMp4 = ref(`${base}video/animatic.mp4`);
+    const videoPlayer = ref(null);
+
+    // --- Data refs -----------------------------------------------------------
+    const texts = ref("en");
+    const currency = ref("EUR");
+    const name = ref("");
+    const days = ref(0);
+    const level = ref("");
+    const top_winnings = ref(0);
+    const live_wins = ref(0);
+    const betting_wins = ref(0);
+    const cashback = ref(0);
+    const gifts_count = ref(0);
+    const favorite_game_thunbnail = ref("");
+    const favorite_game_name = ref("");
+    const end_link = ref("");
+    const cubeSrc = ref("");
+    const levelKey = ref("");
+
+    const skip = reactive({
+      slots: true,
+      level: true,
+      top: true,
+      live: true,
+      betting: true,
+      cashback: true,
+      gifts: true,
+      game: true,
+    });
+
+    // --- UI state ------------------------------------------------------------
         const pressTimer = ref(null);
         const pressDuration = 250;
         const longPress = ref(false);
         const currentTime = ref(0);
         const duration = ref(0);
-        const shouldSeek = ref(0);
         const isPlaying = ref(true);
         const isPaused = ref(false);
-        const thumbs_part = ref(0);
-        const numberOfSegments = ref(6);
-        const isPlayingHasBeenSet = ref(false);
+    const numberOfSegments = ref(SCENES.length);
+    const isVideoPlaying = ref(false);
+    const showPlayButton = ref(false);
+
         const animationPauseStyle = computed(() => ({
             "animation-play-state": isPaused.value ? "paused" : "running",
         }));
-        const languageMap = {
-            en,
-            it,
-            de,
-            fr
-        };
 
-        const updateTime = () => {
-            currentTime.value = tl.time;
-            duration.value = tl.duration;
-        };
-        const progress = computed(() => {
-            let result = 0;
-            let totalSegments = 0;
+    const languageMap = { en, it, de, fr, pt };
 
-            let segment1Progress = 0;
-            if (segment1_duration.value > 0) {
-                segment1Progress = segment1_time.value / segment1_duration.value;
-                totalSegments++;
-            }
+    // --- Display computeds ---------------------------------------------------
+    const daysDigits = computed(() => String(days.value || "").split(""));
+    // Long 0-9 strip so each card can "spin" through several cycles before locking.
+    const slotStrip = computed(() =>
+      Array.from({ length: SLOT_COPIES * 10 }, (_, k) => k % 10)
+    );
+    const seasonRhythmLines = computed(() => {
+      const text = texts.value.season_rhythm || "";
+      if (text === "Season 2 had its own rhythm.") {
+        return ["Season 2", "had its own rhythm."];
+      }
+      return text.split("\n").filter(Boolean);
+    });
+    const dayOfItText = computed(() =>
+      (texts.value.day_of_it || "").replace("{days}", days.value)
+    );
+    const levelName = computed(() => {
+      const key = LEVEL_WORD_KEY[levelKey.value];
+      return (key && texts.value[key]) || "";
+    });
+    const topWinnings = computed(() => top_winnings.value);
+    const liveWins = computed(() => live_wins.value);
+    const bettingWins = computed(() => betting_wins.value);
+    const cashbackValue = computed(() => cashback.value);
+    const giftsCount = computed(() => gifts_count.value);
+    const showGiftBtn = computed(() => !!end_link.value);
 
-            let segment2Progress = 0;
-            if (segment2_duration.value > 0) {
-                segment2Progress = segment2_time.value / segment2_duration.value;
-                totalSegments++;
-            }
-
-            let segment3Progress = 0;
-            if (segment3_duration.value > 0) {
-                segment3Progress = segment3_time.value / segment3_duration.value;
-                totalSegments++;
-            }
-
-            let segment4Progress = 0;
-            if (segment4_duration.value > 0) {
-                segment4Progress = segment4_time.value / segment4_duration.value;
-                totalSegments++;
-            }
-
-            let segment5Progress = 0;
-            if (segment5_duration.value > 0) {
-                segment5Progress = segment5_time.value / segment5_duration.value;
-                totalSegments++;
-            }
-
-            let segment6Progress = 0;
-            if (segment6_duration.value > 0) {
-                segment6Progress = segment6_time.value / segment6_duration.value;
-                totalSegments++;
-            }
-
-            let segment7Progress = 0;
-            if (segment7_duration.value > 0) {
-                segment7Progress = segment7_time.value / segment7_duration.value;
-                totalSegments++;
-            }
-
-            let segment8Progress = 0;
-            if (segment8_duration.value > 0) {
-                segment8Progress = segment8_time.value / segment8_duration.value;
-                totalSegments++;
-            }
-
-
-            let segment9Progress = 0;
-            if (segment9_duration.value > 0) {
-                segment9Progress = segment9_time.value / segment9_duration.value;
-                totalSegments++;
-            }
-
-            if (totalSegments > 0) {
-                const computedValue = (segment1Progress + segment2Progress +
-                    segment3Progress + segment4Progress + segment5Progress + segment6Progress +
-                    segment7Progress + segment8Progress + segment9Progress)
-                    / totalSegments * 100;
-                numberOfSegments.value = totalSegments;
-                if (!isNaN(computedValue)) {
-                    result = computedValue;
-                }
-            }
-
-            if (segment9_time.value > 0 && !reach_end.value) {
-                window.parent.postMessage("reach_end", "*");
-                reach_end.value = true;
-            }
-
-            return result;
-        });
-
-        const topWinFontSize = computed(() => {
-            if (top_winnings.value && top_winnings.value.toString().length) {
-                const length = top_winnings.value.toString().length;
-                if (length < 6) return '15vh';
-                if (length < 8) return '10vh';
-                if (length < 14) return '7vh';
-                if (length < 20) return '4vh';
-            }
-            return '6vh';
-        });
-
-        const cashbackFontSize = computed(() => {
-            if (cashback.value && cashback.value.toString().length) {
-                const length = cashback.value.toString().length;
-                if (length < 6) return '15vh';
-                if (length < 8) return '10vh';
-                if (length < 14) return '7vh';
-                if (length < 20) return '4vh';
-            }
-            return '6vh';
-        });
-
-        const spinsFontSize = computed(() => {
-            if (freespins.value && freespins.value.toString().length) {
-                const length = freespins.value.toString().length;
-                if (length < 6) return '15vh';
-                if (length < 8) return '10vh';
-                if (length < 14) return '7vh';
-                if (length < 20) return '4vh';
-            }
-            return '6vh';
-        });
-
-        const getGift = () => {
-            window.parent.postMessage("bonuses_btn", "*");
-            setTimeout(() => {
-                window.parent.location.href = end_link.value;
-            }, 300);
-        };
-
-
-
+    // --- Progress (average over active segments) -----------------------------
+    const progress = computed(() => {
+      const ids = builtIds.value;
+      if (!ids.length) return 0;
+      let sum = 0;
+      ids.forEach((id) => {
+        const d = segDurations[id] || 0;
+        if (d > 0) sum += Math.min(1, (segTimes[id] || 0) / d);
+      });
+      return (sum / ids.length) * 100;
+    });
 
         const segmentStartTimes = computed(() => {
-            const startTimes = [0]; // Первый сегмент всегда начинается с 0
-            let cumulativeDuration = 0;
-          
-            // Добавляем начальное время каждого сегмента, только если его длительность больше 0
-            if (segment1_duration.value > 0) {
-              cumulativeDuration += segment1_duration.value;
-              startTimes.push(cumulativeDuration);
-            }
-            if (segment2_duration.value > 0) {
-              cumulativeDuration += segment2_duration.value;
-              startTimes.push(cumulativeDuration);
-            }
-            if (segment3_duration.value > 0) {
-              cumulativeDuration += segment3_duration.value;
-              startTimes.push(cumulativeDuration);
-            }
-            if (segment4_duration.value > 0) {
-              cumulativeDuration += segment4_duration.value;
-              startTimes.push(cumulativeDuration);
-            }
-            if (segment5_duration.value > 0) {
-              cumulativeDuration += segment5_duration.value;
-              startTimes.push(cumulativeDuration);
-            }
-            if (segment6_duration.value > 0) {
-              cumulativeDuration += segment6_duration.value;
-              startTimes.push(cumulativeDuration);
-            }
-            if (segment7_duration.value > 0) {
-              cumulativeDuration += segment7_duration.value;
-              startTimes.push(cumulativeDuration);
-            }
-            if (segment8_duration.value > 0) {
-              cumulativeDuration += segment8_duration.value;
-              startTimes.push(cumulativeDuration);
-            }
-          
-            return startTimes;
-          });
+      const arr = [0];
+      let cum = 0;
+      builtIds.value.forEach((id) => {
+        cum += segDurations[id] || 0;
+        arr.push(cum);
+      });
+      return arr;
+    });
 
-        const jumpToSegment = (direction) => {
-             // Calculate the current segment based on the start times
-             let currentSegment = segmentStartTimes.value.findIndex((startTime, i) => {
-                return currentTime.value >= startTime && currentTime.value < segmentStartTimes.value[i + 1];
-            });
-
-            if (direction === "backward") {
-                // If it's the first segment, do not jump to the last one
-                if (currentSegment === -1) {
-                    let newTime = segmentStartTimes.value[numberOfSegments.value - 2];
-                    tl.time(newTime);
-
+    // --- Playback controls ---------------------------------------------------
+    const checkVideoPlayback = () => {
+      if (!videoPlayer.value) return;
+      if (videoPlayer.value.paused) {
+        isVideoPlaying.value = false;
+        showPlayButton.value = true;
+        tl.pause();
                 } else {
-                    let newTime = segmentStartTimes.value[currentSegment - 1];
-                    if (newTime < 0) {
-                        newTime = 0;
-                    }
-                    tl.time(newTime);
+        isVideoPlaying.value = true;
+        showPlayButton.value = false;
+      }
+    };
 
-                }
-                window.parent.postMessage("click_backward", "*");
-            } else if (direction === "forward") {
-                // If it's the last segment or beyond, do not jump to the first one
-                if (currentSegment === -1) {
-                    return;
-                }
-                let newTime = segmentStartTimes.value[currentSegment + 1];
-                tl.time(newTime);
-                window.parent.postMessage("click_forward", "*");
-            }
-        };
+    const playVideo = () => {
+      videoPlayer.value.play();
+      tl.play();
+      showPlayButton.value = false;
+    };
 
-
-
-        const closeStory = () => {
-            window.parent.postMessage("close", "*");
-            setTimeout(() => {
-                window.parent.location.href = end_link.value;
-            }, 150);
-        };
-        
-        
-        
-        const watchAgain = () => {
-        
-            setTimeout(() => {
-                window.location.reload();
-            }, 150);
-        };
-        
+    const updateTime = () => {
+      /* video timeupdate; master timeline drives currentTime */
+    };
 
         const playerPause = () => {
             setTimeout(() => {
@@ -426,21 +255,18 @@ export default {
                 isPaused.value = true;
                 tl.pause();
                 videoPlayer.value.pause();
-                window.parent.postMessage("click_pause", "*");
+          notify("click_pause");
         }
             }, pressDuration + 10);
-            
         };
+
         const playerPlay = () => {
             isPlaying.value = true;
             isPaused.value = false;
             tl.play();
             videoPlayer.value.play();
-            if (longPress.value) {
-                if (currentTime.value > 0.4) {
-                    window.parent.postMessage("click_start", "*");
-                
-                }
+      if (longPress.value && currentTime.value > 0.4) {
+        notify("click_start");
             }
         };
 
@@ -450,15 +276,13 @@ export default {
                 isPaused.value = true;
                 tl.pause();
                 videoPlayer.value.pause();
-                window.parent.postMessage("click_pause", "*");
-            
+        notify("click_pause");
             } else {
                 isPlaying.value = true;
                 isPaused.value = false;
                 tl.play();
                 videoPlayer.value.play();
-                window.parent.postMessage("click_start", "*");
-            
+        notify("click_start");
             }
         };
 
@@ -471,7 +295,6 @@ export default {
 
         const release = (direction) => {
             clearTimeout(pressTimer.value);
-
             if (longPress.value) {
                 playerPlay();
             } else {
@@ -490,7 +313,6 @@ export default {
             }
         };
 
-
         const handleEventEnd = (direction, event) => {
             if (event.type === "touchend") {
                 event.preventDefault();
@@ -500,509 +322,495 @@ export default {
             }
         };
 
-        const checkVideoProgress = () => {
-            if (videoPlayer.value && !isRewinding.value) {
-              const currentTime = videoPlayer.value.currentTime;
-              const duration = videoPlayer.value.duration;
-          
-              if (duration - currentTime < 0.2) {
-                isRewinding.value = true;
-                videoPlayer.value.currentTime = Math.max(0, duration - 3);
-                videoPlayer.value.play();
-                setTimeout(() => {
-                  isRewinding.value = false;
-                }, 100);
-              }
+    const jumpToSegment = (direction) => {
+      const starts = segmentStartTimes.value;
+      let currentSegment = starts.findIndex((startTime, i) => {
+        return currentTime.value >= startTime && currentTime.value < starts[i + 1];
+      });
+      if (direction === "backward") {
+        if (currentSegment === -1) {
+          tl.time(starts[Math.max(0, numberOfSegments.value - 2)] || 0);
+        } else {
+          let newTime = starts[currentSegment - 1];
+          if (newTime == null || newTime < 0) newTime = 0;
+          tl.time(newTime);
+        }
+        notify("click_backward");
+      } else if (direction === "forward") {
+        if (currentSegment === -1) return;
+        const newTime = starts[currentSegment + 1];
+        if (newTime != null) tl.time(newTime);
+        notify("click_forward");
+      }
+    };
+
+    const getGift = () => {
+      notify("bonuses_btn");
+      if (!end_link.value) return;
+      setTimeout(() => {
+        window.parent.location.href = end_link.value;
+      }, 300);
+    };
+
+    const closeStory = () => {
+      notify("close");
+      if (!end_link.value) return;
+      setTimeout(() => {
+        window.parent.location.href = end_link.value;
+      }, 150);
+    };
+
+    const watchAgain = () => {
+      setTimeout(() => {
+        window.location.reload();
+      }, 150);
+    };
+
+    // --- Animation builders --------------------------------------------------
+    const SEL = (id) => `#stories-segment-${id}`;
+
+    const buildEntrance = (stl, scene) => {
+      const root = SEL(scene.id);
+      stl.set(root, { display: "flex" });
+      switch (scene.type) {
+        case "intro":
+          stl.to(root, { duration: 0.2 });
+          break;
+        case "greeting":
+          stl.from(`${root} .scene-hi`, { opacity: 0, y: "2vh", duration: 0.6 });
+          stl.from(
+            `${root} .scene-name`,
+            { opacity: 0, y: "4vh", scale: 0.85, duration: 0.7, ease: "back.out(1.6)" },
+            "-=0.2"
+          );
+          break;
+        case "slots": {
+          const cards = gsap.utils.toArray(`${root} .slot-card`);
+          const digits = daysDigits.value;
+          const restCell = (d) => SLOT_REST_COPY * 10 + d; // resting reel cell
+          const SPIN_CYCLE = SLOT_STEP_DVH * 10 * SLOT_SPINS; // dvh travelled
+          // Each card locks a bit later so the digits fix one by one (1, then 4, then 3).
+          const spinDur = (i) => 1.0 + i * 0.45;
+
+          // 1) cards drop in WITHOUT neon glow
+          stl.set(`${root} .slot-neon-frame`, { opacity: 0 });
+          stl.from(cards, {
+            opacity: 0,
+            scale: 0.7,
+            y: "5vh",
+            duration: 0.5,
+            ease: "back.out(1.6)",
+            stagger: 0.1,
+          });
+
+          // 2) reels begin to spin
+          stl.addLabel("spin");
+
+          // 3) vertical reel spin + sequential lock (1, then 4, then 3)
+          let lastLock = 0;
+          cards.forEach((card, i) => {
+            const d = parseInt(digits[i] || "0", 10);
+            const reel = card.querySelector(".slot-reel");
+            const cells = reel.querySelectorAll(".slot-digit");
+            const winner = cells[restCell(d)];
+            const dur = spinDur(i);
+            const lockAt = "spin+=" + dur;
+            lastLock = Math.max(lastLock, dur);
+            const startY = slotCellY(restCell(d)) + SPIN_CYCLE;
+            const restY = slotCellY(restCell(d));
+
+            stl.fromTo(
+              reel,
+              { "--reel-y": startY + "dvh" },
+              {
+                "--reel-y": restY + "dvh",
+                duration: dur,
+                ease: "power4.out",
+                immediateRender: true,
+              },
+              "spin"
+            );
+            // highlight the resting digit + a small lock-in pop
+            if (winner) {
+              stl.to(winner, { color: "#fafafa", duration: 0.15 }, lockAt);
             }
-          };
+            stl.to(
+              card,
+              { scale: 1.05, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" },
+              lockAt
+            );
+          });
 
-        onMounted(async () => {
-            window.addEventListener("resize", () => {
-                let vh = Math.round(window.innerHeight / 100);
-                document.documentElement.style.setProperty("--vh", `${vh}px`);
-            });
+          // 4) all three cards ignite together: the neon warms up smoothly
+          if (cards.length === 3) {
+            stl.fromTo(
+              `${root} .slot-neon-frame`,
+              { opacity: 0 },
+              { opacity: 1, duration: 1.3, ease: "sine.inOut", immediateRender: false },
+              "spin+=" + (lastLock - 0.3)
+            );
+          }
 
-
-            const fullURL = window.location.href;
-            const queryStartIndex = fullURL.indexOf('?');
-            videoPlayer.value.addEventListener('timeupdate', checkVideoProgress);
-
-            if (queryStartIndex !== -1) {
-                const queryPart = fullURL.slice(queryStartIndex + 1);
-                const params = queryPart.split('&').reduce((acc, pair) => {
-                    const [key, value] = pair.split('=');
-                    acc[key] = decodeURIComponent(value);
-                    return acc;
-                }, {});
-
-
-                if (params.language) {
-                    texts.value = params.language;
-                }
-
-                if (params.user_language) {
-                    texts.value = params.user_language;
-                }
-
-                if (params.currency) {
-                    currency.value = params.currency;
-                }
-                if (params.user_currency) {
-                    currency.value = params.user_currency;
-                }
-
-                if (params.name) {
-                    name.value = params.name;
-                }
-                if (params.days) {
-                    days.value = params.days;
-                }
-                if (params.level) {
-                    level.value = params.level;
-                }
-                if (params.cashback) {
-                    cashback.value = params.cashback;
-                }
-                if (params.top_winnings) {
-                    let winnings = decodeURIComponent(params.top_winnings || '');
-                    winnings = winnings.replace(',', '.').replace(/\s/g, '');
-                    top_winnings.value = Number(Math.round(+winnings));
-                    if (isNaN(top_winnings.value)) {
-                        top_winnings.value = "";
-                    }
-                }
-                scip_top_wining.value = top_winnings.value <= 50;
-                if (params.freespins) {
-                    freespins.value = Math.round(+(params.freespins || '').replace(',', '.'));
-                }
-                
-                scip_cashback.value = cashback.value < 1;
-
-                if (params.favorite_game_thunbnail) {
-                    favorite_game_thunbnail.value = params.favorite_game_thunbnail;
-                }
-                if (params.favorite_game_name) {
-                    favorite_game_name.value = params.favorite_game_name.replace(/\+/g, ' ');
-                }
-                if (favorite_game_thunbnail.value || favorite_game_name.value) {
-                    scip_thumbnail.value = false;
-                }
-                hide_thumbnail.value = params.favorite_game_thunbnail === ''
-                    || params.favorite_game_thunbnail == null
-                    || false;
-                change_thumbnail_text_position.value = params.favorite_game_thunbnail !== '' && !favorite_game_name.value
-                    || params.favorite_game_thunbnail !== null && !favorite_game_name.value
-                    || !favorite_game_name.value;
-
-                if (params.final_link) {
-                    end_link.value = params.final_link;
-                }
-
-
-
-                if (params.level === 'REGULAR') {
-                    vip_level_src.value = regular;
-                    scip_vip_level.value = true
-                    fire_type.value = 1;
-                } else if (params.level === 'BRONZE') {
-                    vip_level_src.value = bronze;
-                    scip_vip_level.value = false;
-                    fire_type.value = 1;
-                } else if (params.level === 'SILVER') {
-                    vip_level_src.value = silver;
-                    scip_vip_level.value = false;
-                    fire_type.value = 1;
-                } else if (params.level === 'GOLD') {
-                    vip_level_src.value = gold;
-                    scip_vip_level.value = false;
-                    fire_type.value = 2;
-                } else if (params.level === 'PLATINUM') {
-                    vip_level_src.value = platinum;
-                    scip_vip_level.value = false;
-                    fire_type.value = 3;
-                } else if (params.level === 'DIAMOND') {
-                    vip_level_src.value = diamond;
-                    scip_vip_level.value = false;
-                    fire_type.value = 4;
-                } else {
-                    scip_vip_level.value = true;
-                }
-                if (params.fire_type !== '' && params.fire_type !== null && params.fire_type !== undefined) {
-                    fire_type.value = params.fire_type;
-                }
-            } else {
-
-                const defaultLanguage = navigator.language.split('-')[0];
-                if (availableLanguages.languages.includes(defaultLanguage)) {
-                    texts.value = defaultLanguage;
-                }
-
+          // 5) text drops from above, then rises from below
+          stl.from(
+            `${root} .scene-top-text`,
+            { opacity: 0, y: "-4vh", duration: 0.5 },
+            "spin+=0.15"
+          );
+          stl.from(
+            `${root} .scene-bottom-text`,
+            { opacity: 0, y: "4vh", duration: 0.5 },
+            "spin+=" + (spinDur(cards.length - 1) - 0.2)
+          );
+          break;
+        }
+        case "fall":
+        case "netball":
+          if (scene.id === 4) {
+            // Scene 4 cards have exact CSS rotations from Figma.
+            // Animate a CSS variable so GSAP does not overwrite rotate().
+            stl.fromTo(
+              `${root} .journey-card--bottom`,
+              { opacity: 0, "--journey-y": "-32dvh" },
+              { opacity: 1, "--journey-y": "0dvh", duration: 0.75, ease: "bounce.out" }
+            );
+            stl.fromTo(
+              `${root} .journey-card--top`,
+              { opacity: 0, "--journey-y": "-32dvh" },
+              { opacity: 1, "--journey-y": "0dvh", duration: 0.75, ease: "bounce.out" },
+              "-=0.4"
+            );
+            break;
+          }
+          if (scene.id === 6) {
+            // Scene 6 cards have exact CSS rotations from Figma.
+            // Animate a CSS variable so GSAP does not overwrite rotate().
+            stl.fromTo(
+              `${root} .gift-card--bottom`,
+              { opacity: 0, "--gift-y": "-32dvh" },
+              { opacity: 1, "--gift-y": "0dvh", duration: 0.75, ease: "bounce.out" }
+            );
+            stl.fromTo(
+              `${root} .gift-card--top`,
+              { opacity: 0, "--gift-y": "-32dvh" },
+              { opacity: 1, "--gift-y": "0dvh", duration: 0.75, ease: "bounce.out" },
+              "-=0.4"
+            );
+            break;
+          }
+          // generic card scenes (8/10/12/14/16): cards drop bottom-to-top with a
+          // physical bounce. Animate --fall-y so CSS rotate/centering stay intact.
+          {
+            const fallCards = gsap.utils.toArray(`${root} .fall-card`);
+            if (fallCards.length) {
+              fallCards
+                .slice()
+                .reverse()
+                .forEach((el, i) => {
+                  stl.fromTo(
+                    el,
+                    { opacity: 0, "--fall-y": "-32dvh" },
+                    {
+                      opacity: 1,
+                      "--fall-y": "0dvh",
+                      duration: 0.75,
+                      ease: "bounce.out",
+                    },
+                    i === 0 ? undefined : "-=0.4"
+                  );
+                });
+              break;
             }
+          }
+          // legacy fallback: blocks drop top->down, lower one first, with a bounce
+          stl.from(`${root} .chip--b`, {
+            opacity: 0,
+            y: "-32vh",
+            duration: 0.75,
+            ease: "bounce.out",
+          });
+          stl.from(
+            `${root} .chip--a`,
+            { opacity: 0, y: "-32vh", duration: 0.75, ease: "bounce.out" },
+            "-=0.4"
+          );
+          break;
+        case "level":
+          // cube descends from above (smaller) and grows to full size
+          stl.from(`${root} .cube-img`, {
+            opacity: 0,
+            y: "-15dvh",
+            scale: 0.65,
+            duration: 1.0,
+            ease: "power3.out",
+          });
+          // text lines appear from below sequentially
+          stl.from(`${root} .scene-cube-top`, { opacity: 0, y: "4dvh", duration: 0.45, ease: "power2.out" }, "-=0.15");
+          stl.from(`${root} .scene-cube-level`, { opacity: 0, y: "4dvh", duration: 0.45, ease: "power2.out" }, "-=0.15");
+          stl.from(`${root} .scene-cube-bottom`, { opacity: 0, y: "4dvh", duration: 0.45, ease: "power2.out" }, "-=0.15");
+          break;
+        case "number":
+          stl.from(`${root} .scene-num-label`, { opacity: 0, y: "4vh", duration: 0.5 });
+          stl.from(
+            `${root} .big-number`,
+            { opacity: 0, y: "9vh", scale: 0.8, duration: 0.7, ease: "back.out(1.5)" },
+            "-=0.1"
+          );
+          break;
+        case "game":
+          stl.from(`${root} .scene-game-label`, { opacity: 0, y: "-3vh", duration: 0.4 });
+          stl.from(`${root} .scene-game-name`, { opacity: 0, y: "-3vh", duration: 0.5 }, "-=0.1");
+          stl.from(
+            `${root} .game-frame`,
+            { opacity: 0, scale: 0.7, duration: 0.7, ease: "back.out(1.5)" },
+            "-=0.1"
+          );
+          break;
+        case "lock":
+          stl.from(`${root} .scene-lock-text`, { opacity: 0, y: "4vh", duration: 0.7 });
+          break;
+        case "flameOut":
+          stl.from(`${root} .scene-flame-title`, { opacity: 0, y: "3vh", duration: 0.6 });
+          stl.from(`${root} .scene-flame-sub`, { opacity: 0, y: "3vh", duration: 0.5 }, "-=0.2");
+          break;
+        case "final":
+          stl.from(`${root} .scene-final-top`, { opacity: 0, y: "3vh", duration: 0.5 });
+          stl.from(
+            `${root} .scene-final-name`,
+            { opacity: 0, y: "4vh", scale: 0.85, duration: 0.6, ease: "back.out(1.5)" },
+            "-=0.2"
+          );
+          stl.from(
+            `${root} .end_button`,
+            { opacity: 0, y: "3vh", duration: 0.5, stagger: 0.15 },
+            "-=0.1"
+          );
+          break;
+        default:
+          stl.to(root, { duration: 0.2 });
+      }
+    };
 
-            const locale = texts.value;
+    const buildSegment = (scene) => {
+      const stl = gsap.timeline({
+        defaults: { duration: defaultDuration, ease: "power1.inOut" },
+        onUpdate: () => {
+          segTimes[scene.id] = stl.time();
+        },
+      });
 
-            if (availableLanguages.languages.includes(locale)) {
-                texts.value = languageMap[locale];
-            } else {
-                texts.value = en;
-            }
-
-            if (top_winnings.value > 500 && fire_type.value < 2 || top_winnings.value > 500 && fire_type.value === undefined) {
-                fire_type.value = 2
-            }
-            if (top_winnings.value > 1000 && fire_type.value < 3 || top_winnings.value > 1000 && fire_type.value === undefined) {
-                fire_type.value = 3
-            }
-            if (top_winnings.value > 10000 && fire_type.value < 4 || top_winnings.value > 10000 && fire_type.value === undefined) {
-                fire_type.value = 4
-            }
-
-
-
-            if (fire_type.value === undefined) {
-                fire_type.value = 1;
-            }
-
-
-
-
-            const videoMap = {
-                '1': clip1,
-                '2': clip2,
-                '3': clip3,
-                '4': clip4
-            };
-
-
-            videoSrc.value = videoMap[fire_type.value] || clip1;
-
-            console.log("scip_vip_level.value " + scip_vip_level.value);
-
-            console.log("scip_top_wining.value " + scip_top_wining.value);
-
-            console.log("scip_cashback.value " + scip_cashback.value);
-
-            console.log("scip_thumbnail.value " + scip_thumbnail.value);
-
-
-            
-
-
-           
-
-            // SEGMENT 1 HELLO
-            segment1.add(() => {
-                if (Math.abs(videoPlayer.value.currentTime - segment1StartTime) > 0.1) {
-                  videoPlayer.value.currentTime = segment1StartTime;
-                }
-                videoPlayer.value.play().then(() => {
-                  setTimeout(checkVideoPlayback, 200);
-                }).catch(() => {
+      stl.add(() => {
+        if (!videoPlayer.value) return;
+        if (Math.abs(videoPlayer.value.currentTime - scene.vstart) > 0.25) {
+          videoPlayer.value.currentTime = scene.vstart;
+        }
+        if (videoPlayer.value.paused) {
+          videoPlayer.value
+            .play()
+            .then(() => setTimeout(checkVideoPlayback, 200))
+            .catch(() => {
                   showPlayButton.value = true;
                   tl.pause();
                 });
-              });
-            segment1.set("#stories-segment-1", { display: "flex" }); // Показать сегмент
-            segment1.from("#stories-segment-1", { rotationY: -90, duration: 0.5, delay: 4.3, ease: "power1.inOut" });
-            segment1.to("#stories-segment-1", { duration: 2.6, className: "stories-segment scale_down_animation" });
-            segment1.set("#stories-segment-1", { display: "none" }); // Скрыть сегмент после анимации
+        }
+      });
 
-            segment1_duration.value = segment1.duration();
+      buildEntrance(stl, scene);
 
-            // SEGMENT 2 DAYS
-            segment2.add(() => {
-                if (Math.abs(videoPlayer.value.currentTime - segment2StartTime) > 0.2) {
-                    videoPlayer.value.currentTime = segment2StartTime;
-                }
-                if (videoPlayer.value.paused) {
-                videoPlayer.value.play();
-            }
-            });
-            segment2.set("#stories-segment-2", { display: "flex" }); // Показать сегмент
-            segment2.to("#stories-segment-1", {
-                scale: 0,
-                opacity: 0,
-                duration: 0.5,
-                ease: "power1.out",
-                className: "stories-segment"
-            });
-            segment2.from("#stories-segment-2", { scale: 3, opacity: 0, duration: 0.5, delay: -0.4, ease: "power1.out" });
-            segment2.to("#stories-segment-2", { duration: 4.7, className: "stories-segment scale_down_animation" });
-            segment2.set("#stories-segment-2", { display: "none" }); // Скрыть сегмент после анимации
+      const exitDur = 0.5;
+      const entranceEnd = stl.duration();
+      const holdSpan = Math.max(0.1, scene.dur - exitDur - entranceEnd);
+      stl.to(SEL(scene.id), { duration: holdSpan }); // hold
+      stl.to(SEL(scene.id), { opacity: 0, duration: exitDur, ease: "power1.in" });
+      stl.set(SEL(scene.id), { display: "none", opacity: 1 });
 
-            segment2_duration.value = segment2.duration();
+      segDurations[scene.id] = stl.duration();
+      return stl;
+    };
 
-            // SEGMENT 3 WHAT
-            segment3.add(() => {
-                if (Math.abs(videoPlayer.value.currentTime - segment3StartTime) > 0.2) {
-                    videoPlayer.value.currentTime = segment3StartTime;
-                }
-                if (videoPlayer.value.paused) {
-                videoPlayer.value.play();
-            }
-            });
-            segment3.set("#stories-segment-3", { display: "flex" }); // Показать сегмент 3
-            segment3.set("#stories-segment-4", { display: "flex" }); // Подготовить сегмент 4
-            segment3.to("#stories-segment-2", {
-                scale: 0,
-                opacity: 0,
-                duration: 0.5,
-                ease: "power1.out",
-                className: "stories-segment"
-            });
-            segment3.from("#stories-segment-3", { scale: 3, opacity: 0, duration: 0.5, delay: -0.4, ease: "power1.out" });
-            segment3.to("#stories-segment-3", { duration: 3.5, className: "stories-segment scale_down_animation" });
-            segment3.to("#stories-segment-3", { rotationY: -90, className: "stories-segment", duration: 0.2, ease: "power1.inOut" });
-            segment3.from("#stories-segment-4", { rotationY: 90, duration: 0.2, ease: "power1.out" });
-            segment3.to("#stories-segment-4", { duration: 3.5, className: "stories-segment scale_down_animation" });
-            segment3.set(["#stories-segment-3", "#stories-segment-4"], { display: "none" }); // Скрыть сегменты после анимации
+    // --- URL params ----------------------------------------------------------
+    const toNumber = (raw) => {
+      if (raw == null) return 0;
+      const cleaned = String(raw).replace(",", ".").replace(/\s/g, "");
+      const n = Math.round(Number(cleaned));
+      return isNaN(n) ? 0 : n;
+    };
 
-            segment3_duration.value = segment3.duration();
+    const resolveLevel = (raw) => {
+      const lv = (raw || "").trim().toUpperCase();
+      if (!lv) return { skip: true };
+      if (lv === "REGULAR") {
+        return SHOW_IRON_FOR_REGULAR
+          ? { skip: false, cube: LEVEL_CUBES.IRON, key: "REGULAR" }
+          : { skip: true };
+      }
+      if (LEVEL_CUBES[lv]) return { skip: false, cube: LEVEL_CUBES[lv], key: lv };
+      console.warn("[stories] unknown level value:", raw);
+      return { skip: true };
+    };
 
-            // SEGMENT 4 LEVEL
-            if (!scip_vip_level.value) {
-            segment4.add(() => {
-                if (Math.abs(videoPlayer.value.currentTime - segment4StartTime) > 0.2) {
-                    videoPlayer.value.currentTime = segment4StartTime;
-                }
-                if (videoPlayer.value.paused) {
-                videoPlayer.value.play();
-            }
-            });
-            segment4.set("#stories-segment-5", { display: "flex" }); // Показать сегмент 5
-            segment4.to("#stories-segment-4", {
-                scale: 0,
-                opacity: 0,
-                duration: 0.5,
-                ease: "power1.out",
-                className: "stories-segment"
-            });
-            segment4.from("#stories-segment-5", { scale: 3, opacity: 0, duration: 0.5, delay: -0.4, ease: "power1.out" });
-            segment4.to("#stories-segment-5", { duration: 4.5, className: "stories-segment scale_down_animation" });
-            segment4.set("#stories-segment-5", { display: "none" }); // Скрыть сегмент после анимации
-            }
+    const parseParams = () => {
+      const fullURL = window.location.href;
+      const queryStartIndex = fullURL.indexOf("?");
+      if (queryStartIndex === -1) {
+        const defaultLanguage = navigator.language.split("-")[0];
+        if (availableLanguages.languages.includes(defaultLanguage)) {
+          texts.value = defaultLanguage;
+        }
+        return;
+      }
+      const params = fullURL
+        .slice(queryStartIndex + 1)
+        .split("&")
+        .reduce((acc, pair) => {
+          const [key, value] = pair.split("=");
+          if (key) acc[key] = decodeURIComponent(value || "");
+          return acc;
+        }, {});
 
-            segment4_duration.value = segment4.duration();
+      if (params.language) texts.value = params.language;
+      if (params.user_language) texts.value = params.user_language;
+      if (params.currency) currency.value = params.currency;
+      if (params.user_currency) currency.value = params.user_currency;
 
-            // SEGMENT 5 WININGS
-            if (!scip_top_wining.value) {
-            segment5.add(() => {
-                if (Math.abs(videoPlayer.value.currentTime - segment5StartTime) > 0.2) {
-                    videoPlayer.value.currentTime = segment5StartTime;
-                }
-                if (videoPlayer.value.paused) {
-                videoPlayer.value.play();
-            }
-            });
-            segment5.set("#stories-segment-6", { display: "flex" }); // Показать сегмент 6
-            segment5.to("#stories-segment-5", {
-                scale: 0,
-                opacity: 0,
-                duration: 0.5,
-                ease: "power1.out",
-                className: "stories-segment"
-            });
-            segment5.from("#stories-segment-6", { scale: 3, opacity: 0, duration: 0.5, delay: -0.4, ease: "power1.out" });
-            segment5.to("#stories-segment-6", { duration: 4.5, className: "stories-segment scale_down_animation" });
-            segment5.set("#stories-segment-6", { display: "none" }); // Скрыть сегмент после анимации
-            }
+      if (params.name) name.value = params.name.replace(/\+/g, " ");
+      if (params.days) days.value = toNumber(params.days);
+      if (params.level) level.value = params.level;
+      if (params.top_winnings) top_winnings.value = toNumber(params.top_winnings);
+      if (params.live_wins) live_wins.value = toNumber(params.live_wins);
+      if (params.betting_wins) betting_wins.value = toNumber(params.betting_wins);
+      if (params.cashback) cashback.value = toNumber(params.cashback);
+      if (params.gifts_count) gifts_count.value = toNumber(params.gifts_count);
+      if (params.favorite_game_thunbnail)
+        favorite_game_thunbnail.value = params.favorite_game_thunbnail;
+      if (params.favorite_game_name)
+        favorite_game_name.value = params.favorite_game_name.replace(/\+/g, " ");
+      if (params.final_link) end_link.value = params.final_link;
+    };
 
-            segment5_duration.value = segment5.duration();
+    const computeSkips = () => {
+      skip.slots = !days.value || days.value < 1;
+      const lvl = resolveLevel(level.value);
+      skip.level = lvl.skip;
+      cubeSrc.value = lvl.cube || "";
+      levelKey.value = lvl.key || "";
+      // Number scenes show only when the param is passed with a real value (>= 1).
+      // Missing param (defaults to 0) or an explicit 0 => scene is skipped.
+      skip.top = !(top_winnings.value >= 1);
+      skip.live = !(live_wins.value >= 1);
+      skip.betting = !(betting_wins.value >= 1);
+      skip.cashback = !(cashback.value >= 1);
+      skip.gifts = !(gifts_count.value >= 1);
+      skip.game = !(favorite_game_name.value || favorite_game_thunbnail.value);
+    };
 
-            // SEGMENT 6 CASHBACK
-            if (!scip_cashback.value) {
-            segment6.add(() => {
-                if (Math.abs(videoPlayer.value.currentTime - segment6StartTime) > 0.2) {
-                    videoPlayer.value.currentTime = segment6StartTime;
-                }
-                if (videoPlayer.value.paused) {
-                videoPlayer.value.play();
-            }
-            });
-            segment6.set("#stories-segment-8", { display: "flex" }); // Показать сегмент 8
-            segment6.to("#stories-segment-6", {
-                scale: 0,
-                opacity: 0,
-                duration: 0.5,
-                ease: "power1.out",
-                className: "stories-segment"
-            });
-            segment6.from("#stories-segment-8", { scale: 3, opacity: 0, duration: 0.5, delay: -0.4, ease: "power1.out" });
-            segment6.to("#stories-segment-8", { duration: 4.5, className: "stories-segment scale_down_animation" });
-            segment6.set("#stories-segment-8", { display: "none" }); // Скрыть сегмент после анимации
-            }
+    onMounted(() => {
+      const setVh = () => {
+        const vh = Math.round(window.innerHeight / 100);
+        document.documentElement.style.setProperty("--vh", `${vh}px`);
+      };
+      setVh();
+      window.addEventListener("resize", setVh);
 
-            segment6_duration.value = segment6.duration();
+      parseParams();
 
-            // SEGMENT 7 GAME
-            if (!scip_thumbnail.value) {
-            segment7.add(() => {
-                if (Math.abs(videoPlayer.value.currentTime - 36) > 0.2) {
-                    videoPlayer.value.currentTime = 36;
-                }
-                if (videoPlayer.value.paused) {
-                videoPlayer.value.play();
-            }
-            });
-            segment7.set("#story_controls", { className: "story_controls" });
-            segment7.set("#stories-segment-9", { display: "flex" }); // Показать сегмент 9
-            segment7.to("#stories-segment-8", {
-                scale: 0,
-                opacity: 0,
-                duration: 0.5,
-                ease: "power1.out",
-                className: "stories-segment"
-            });
-            segment7.from("#stories-segment-9", { scale: 3, opacity: 0, duration: 0.5, delay: -0.4, ease: "power1.out" });
-            segment7.to("#stories-segment-9", { duration: 4.5, className: "stories-segment scale_down_animation" });
-            segment7.set("#stories-segment-9", { display: "none" }); // Скрыть сегмент после анимации
-            }
+      const locale = texts.value;
+      texts.value = availableLanguages.languages.includes(locale)
+        ? languageMap[locale]
+        : en;
 
-            segment7_duration.value = segment7.duration();
+      computeSkips();
 
-            // SEGMENT 8 FIRE TYPE
-            segment8.add(() => {
-                if (Math.abs(videoPlayer.value.currentTime - segment8StartTime) > 0.2) {
-                    videoPlayer.value.currentTime = segment8StartTime;
-                }
-                if (videoPlayer.value.paused) {
-                videoPlayer.value.play();
-            }
-            });
-            segment8.set("#story_controls", { className: "story_controls" });
-            segment8.set("#stories-segment-10", { display: "flex" }); // Показать сегмент 10
-            segment8.set("#stories-segment-11", { display: "flex" }); // Подготовить сегмент 11
-            segment8.set("#stories-segment-12", { display: "flex" }); // Подготовить сегмент 12
-            segment8.to("#stories-segment-9", {
-                scale: 0,
-                opacity: 0,
-                duration: 0.5,
-                ease: "power1.out",
-                className: "stories-segment"
-            });
-            segment8.from("#stories-segment-10", { scale: 3, opacity: 0, duration: 0.5, delay: -0.4, ease: "power1.out" });
-            segment8.to("#stories-segment-10", { duration: 3.5, className: "stories-segment scale_down_animation" });
-            segment8.to("#stories-segment-10", { rotationY: -90, className: "stories-segment", duration: 0.2, ease: "power1.inOut" });
-            segment8.from("#stories-segment-11", { rotationY: 90, duration: 0.2, ease: "power1.out" });
-            segment8.to("#stories-segment-11", { duration: 3.3, className: "stories-segment scale_down_animation" });
-            segment8.to("#stories-segment-11", {
-                scale: 0,
-                opacity: 0,
-                duration: 0.5,
-                ease: "power1.out",
-                className: "stories-segment"
-            });
-            segment8.from("#stories-segment-12", { scale: 0, opacity: 0, duration: 0.5, delay: 7.5, ease: "power1.out" });
-            segment8.to("#stories-segment-12", { delay: 6.3 });
-            segment8.set(["#stories-segment-10", "#stories-segment-11", "#stories-segment-12"], { display: "none" }); // Скрыть сегменты после анимации
+      // Wait for Vue to render the DOM with parsed data (slot cards, cube,
+      // game frame are data-driven). Otherwise GSAP selectors match nothing.
+      nextTick(() => {
+        // Build only the active segments (data-driven skip), preserving order.
+        const built = [];
+        SCENES.forEach((scene) => {
+          if (scene.skip && skip[scene.skip]) return;
+          const stl = buildSegment(scene);
+          tl.add(stl);
+          built.push(scene.id);
+        });
+        builtIds.value = built;
+        numberOfSegments.value = built.length;
+        duration.value = tl.duration();
 
-            segment8_duration.value = segment8.duration();
+        // master timeline was created empty before mount; start it now from 0
+        tl.play(0);
 
-            // SEGMENT 9 GIFT
-            segment9.add(() => {
-                if (Math.abs(videoPlayer.value.currentTime - segment9StartTime) > 0.2) {
-                    videoPlayer.value.currentTime = segment9StartTime;
-                }
-                if (videoPlayer.value.paused) {
-                videoPlayer.value.play();
-            }
-            });
-            segment9.set("#story_controls", { className: "story_controls height_not_full" });
-            segment9.set("#stories-segment-13", { display: "flex" }); // Показать сегмент 13
-        
-            segment9.to("#stories-segment-12", {
-                scale: 0,
-                opacity: 0,
-                duration: 0.5,
-                ease: "power1.out"
-            });
-            segment9.from("#stories-segment-13", { scale: 3, opacity: 0, duration: 0.7, delay: -0.4, ease: "power1.out" });
-
-            segment9_duration.value = segment9.duration();
-
-            tl.add(segment1);
-            tl.add(segment2);
-            tl.add(segment3);
-            tl.add(segment4);
-            tl.add(segment5);
-            tl.add(segment6);
-            tl.add(segment7);
-            tl.add(segment8);
-            tl.add(segment9);
-
-            duration.value = tl.duration();
-
+        if (import.meta.env.DEV) {
+          window.__story = {
+            tl,
+            video: videoPlayer,
+            seek: (t) => {
+              tl.pause();
+              tl.time(t);
+              if (videoPlayer.value) videoPlayer.value.pause();
+            },
+            seekSeg: (id) => {
+              tl.pause();
+              let t = 0;
+              for (const sid of builtIds.value) {
+                if (sid === id) break;
+                t += segDurations[sid] || 0;
+              }
+              tl.time(t + 0.9);
+              if (videoPlayer.value) videoPlayer.value.pause();
+            },
+            builtIds,
+          };
+        }
+      });
         });
 
         return {
-            isPlayingHasBeenSet,
+      // state
             progress,
-            updateTime,
-            shouldSeek,
-            playerPause,
-            playerPlay,
-            isPlaying,
-            press,
-            release,
             numberOfSegments,
-            handleEvent,
-            handleEventEnd,
-            jumpToSegment,
-            togglePlayState,
+      isPlaying,
+      isPaused,
             animationPauseStyle,
+      showPlayButton,
+      // video
+      videoPlayer,
+      videoWebm,
+      videoMp4,
+      updateTime,
+      playVideo,
+      playButton,
+      // data
             texts,
-            currency,
             name,
-            closeStory,
-            watchAgain,
-            thumbs_part,
+      days,
+      daysDigits,
+      slotStrip,
+      seasonRhythmLines,
+      dayOfItText,
+      cubeSrc,
+      levelName,
+      currency,
+      topWinnings,
+      liveWins,
+      bettingWins,
+      cashbackValue,
+      giftsCount,
+      favorite_game_name,
+      favorite_game_thunbnail,
+      showGiftBtn,
+      // assets
             story_icon,
-            icon_replay,
-            players,
-            prizes,
-            top_prize,
-            player_name,
-            clip1,
-            clip2,
-            clip3,
-            clip4,
-            dec_1,
-            dec_2,
-            dec_3,
             top_logo,
-            videoSrc,
-            days,
-            top_winnings,
-            videoPlayer,
             watchAgainIcon,
-            level,
-            cashback,
-            favorite_game_thunbnail,
-            favorite_game_name,
-            fire_type,
-            end_link,
-            vip_level_src,
-            scip_vip_level,
-            hide_thumbnail,
-            change_thumbnail_text_position,
-            topWinFontSize,
-            cashbackFontSize,
-            spinsFontSize,
+      slotFrame,
+      // actions
+      togglePlayState,
+      handleEvent,
+      handleEventEnd,
+      jumpToSegment,
             getGift,
-            scip_top_wining,
-            isVideoPlaying,
-            showPlayButton,
-            playVideo,
-            playButton,
-        };
-    },
-    methods: {
-
-        reloadPage() {
-            setTimeout(() => {
-                window.location.reload();
-            }, 150);
-        }
-    }
-
+      closeStory,
+      watchAgain,
+    };
+  },
 };

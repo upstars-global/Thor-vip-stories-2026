@@ -1,3 +1,49 @@
+@use "sass:math";
+
+$figma-width: 1080;
+$figma-height: 1920;
+
+@function strip-unit($value) {
+  @if math.is-unitless($value) {
+    @return $value;
+  }
+
+  @return math.div($value, $value * 0 + 1);
+}
+
+@function to-dvh($px, $base-height: $figma-height) {
+  @return math.div(strip-unit($px), $base-height) * 100dvh;
+}
+
+// Vertical position relative to the segment/frame height (containing block),
+// not the viewport. On mobile the frame == viewport (100vh) so the result is
+// identical to to-dvh(); on >=768 the frame is 90% tall and positions adapt
+// automatically, keeping equal top/bottom margins without magic constants.
+@function to-frame-percent-y($px, $base-height: $figma-height) {
+  @return percentage(math.div(strip-unit($px), $base-height));
+}
+
+@function to-vh($px, $base-height: $figma-height) {
+  @return math.div(strip-unit($px), $base-height) * 100vh;
+}
+
+@function to-dvw($px, $base-width: $figma-width) {
+  @return math.div(strip-unit($px), $base-width) * 100dvw;
+}
+
+@function to-vw($px, $base-width: $figma-width) {
+  @return math.div(strip-unit($px), $base-width) * 100vw;
+}
+
+// Unified "design pixel". Multiplies a raw Figma px value by the CSS custom
+// property --u, which equals the contain-scale of the 1080x1920 canvas inside
+// its frame (see .text_container / scene canvases). Use inside a scaled design
+// canvas so sizes, positions and fonts keep design proportions on every screen
+// ratio without horizontal overflow on narrow phones.
+@function px($n) {
+  @return calc(#{strip-unit($n)} * var(--u));
+}
+
 @mixin media($breakpoint) {
     @if $breakpoint == M {
       @media (min-width: 768px) {

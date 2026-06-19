@@ -1,4 +1,4 @@
-@import "./_mixins.scss";
+@import './_mixins.scss';
 
 .story-container {
   position: absolute;
@@ -32,7 +32,6 @@
   }
 }
 
-
 .text_container {
   position: absolute;
   top: 0;
@@ -40,6 +39,10 @@
   width: 100%;
   height: 100%;
   display: flex;
+  /* size container: scene canvases read --u via 100cqw/100cqh, so the design
+     pixel is measured against the story frame (mobile = viewport, >=768 = 90%
+     box), never the raw viewport */
+  container-type: size;
   @include media(M) {
     width: 58.2vh;
     left: 50%;
@@ -51,8 +54,6 @@
     border-radius: 3vh;
   }
 }
-
-
 
 .stories-segment {
   z-index: 1;
@@ -66,8 +67,6 @@
   transform-origin: center;
   display: none;
 }
-
-
 
 .h1 {
   font-size: 15vh;
@@ -86,7 +85,7 @@
 }
 
 .h2 {
-  font-size: calc(15vh/1.75);
+  font-size: calc(15vh / 1.75);
   color: var(--color-text-alt);
   text-align: center;
   font-family: 'Sora', sans-serif;
@@ -119,7 +118,7 @@
 }
 
 .h4 {
-  font-size: calc(15vh/3.3);
+  font-size: calc(15vh / 3.3);
   color: var(--color-text-alt);
   text-align: center;
   font-family: 'Sora', sans-serif;
@@ -135,7 +134,7 @@
 }
 
 .h5 {
-  font-size: calc(15vh/5.1);
+  font-size: calc(15vh / 5.1);
   color: var(--color-text-body);
   text-align: center;
   font-family: 'Sora', sans-serif;
@@ -151,9 +150,6 @@
     transform: translate(-50%);
   }
 }
-
-
-
 
 .video-player {
   position: absolute;
@@ -180,7 +176,6 @@
   overflow: hidden;
   user-select: none;
   pointer-events: none;
-
 }
 
 .close_button {
@@ -243,8 +238,17 @@
   aspect-ratio: 5/7;
   left: 50%;
   transform: translate(-50%);
-  background: linear-gradient(94deg, #A432B5 5.66%, #D75FFF 11.66%, #A841B7 28.49%,
-          #8B29D9 51.5%, #7B35ED 68.33%, #7140FF 83.6%, #4B86DE 93.72%, #4C6BDA 96.6%);
+  background: linear-gradient(
+    94deg,
+    #a432b5 5.66%,
+    #d75fff 11.66%,
+    #a841b7 28.49%,
+    #8b29d9 51.5%,
+    #7b35ed 68.33%,
+    #7140ff 83.6%,
+    #4b86de 93.72%,
+    #4c6bda 96.6%
+  );
   border-radius: 2.3vh;
   margin-bottom: 3vh;
   margin-top: 3vh;
@@ -261,7 +265,6 @@
   border-radius: 2vh;
 }
 
-
 .margin_top_small {
   margin-top: 4%;
 }
@@ -273,7 +276,6 @@
 .margin_top_bigger {
   margin-top: 23vh;
 }
-
 
 .max_with_small {
   max-width: 28vh;
@@ -320,7 +322,7 @@
   padding: 1.5vh 0;
   border-radius: 10vh;
   font-size: 3.2vh;
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-style: normal;
   font-weight: 700;
   display: flex;
@@ -337,9 +339,8 @@
 }
 
 a {
-  text-decoration: none!important;
+  text-decoration: none !important;
 }
-
 
 .end_button:hover {
   text-decoration: none;
@@ -364,7 +365,7 @@ a {
 }
 
 .fe-preloader {
-  display: none!important;
+  display: none !important;
 }
 
 .ref_img {
@@ -394,7 +395,6 @@ a {
   }
 }
 
-
 .story_icon {
   position: relative;
   top: 0;
@@ -405,13 +405,11 @@ a {
   z-index: 5;
 }
 
-
-
 .story_icon_top_text {
   position: relative;
   color: var(--color-text-alt);
   font-size: 2vh;
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-style: normal;
   font-weight: 400;
   top: 0;
@@ -432,7 +430,7 @@ a {
   position: absolute;
   color: var(--color-text-alt);
   font-size: 2.7vh;
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-style: normal;
   font-weight: 700;
   top: 0;
@@ -459,12 +457,11 @@ a {
   background-color: var(--color-layer-alt-1);
 }
 
-
 .casino_container {
   position: absolute;
   color: var(--color-text-alt);
   font-size: 1.5vh;
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-style: normal;
   font-weight: 700;
   top: 2vh;
@@ -475,7 +472,7 @@ a {
   height: fit-content;
   border-radius: 3vh;
   padding: 0.15vh;
-  background: linear-gradient(90deg,#eb02e2,#2797ff);
+  background: linear-gradient(90deg, #eb02e2, #2797ff);
 }
 
 .casino_container_sport {
@@ -486,7 +483,7 @@ a {
   position: relative;
   color: var(--color-text-alt);
   font-size: 1.5vh;
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-style: normal;
   font-weight: 700;
   top: 0;
@@ -517,14 +514,14 @@ a {
   aspect-ratio: 1/1;
   background-color: var(--color-error);
   border-radius: 50%;
-  margin: 0.7vh 0.1vh 0.7vh 0.7vh
+  margin: 0.7vh 0.1vh 0.7vh 0.7vh;
 }
 
 .text_expires {
   position: relative;
   color: var(--color-text-body);
   font-size: 1.5vh;
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-style: normal;
   font-weight: 400;
   top: 0;
@@ -540,7 +537,7 @@ a {
   position: relative;
   color: var(--color-text-alt);
   font-size: 1.5vh;
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-style: normal;
   font-weight: 700;
   top: 0;
@@ -556,7 +553,7 @@ a {
   position: absolute;
   color: var(--color-text-alt);
   font-size: 2.47vh;
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-style: normal;
   font-weight: 700;
   top: 7.5vh;
@@ -594,25 +591,25 @@ a {
 }
 
 .condition_top_text {
-    position: relative;
-    color: var(--color-text-alt);
-    font-size: 1.5vh;
-    font-family: "Sora", sans-serif;
-    font-style: normal;
-    font-weight: 700;
-    top: 0;
-    left: 0;
-    line-height: 150%;
-    text-align: left;
-    width: auto;
-    white-space: nowrap;
+  position: relative;
+  color: var(--color-text-alt);
+  font-size: 1.5vh;
+  font-family: 'Sora', sans-serif;
+  font-style: normal;
+  font-weight: 700;
+  top: 0;
+  left: 0;
+  line-height: 150%;
+  text-align: left;
+  width: auto;
+  white-space: nowrap;
 }
 
 .condition_bottom_text {
   position: relative;
   color: var(--color-text-body);
   font-size: 1.25vh;
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-style: normal;
   font-weight: 400;
   top: 0;
@@ -637,7 +634,7 @@ a {
   background-color: var(--color-secondary-6);
   color: var(--color-text-alt);
   font-size: 1.4vh;
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-style: normal;
   font-weight: 700;
   cursor: pointer;
@@ -657,14 +654,14 @@ a {
   background-color: var(--color-primary-1);
   color: var(--color-on-light-back);
   font-size: 1.4vh;
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-style: normal;
   font-weight: 700;
   cursor: pointer;
 }
 
 .avalible_order {
-  color: #FFBA33;
+  color: #ffba33;
   font-weight: 400;
   font-size: 1vh;
   background-color: unset;
@@ -701,7 +698,12 @@ a {
   z-index: 30;
   mix-blend-mode: soft-light;
   transform: rotate(10deg);
-  background: linear-gradient(270deg, rgba(255, 255, 255, 0.00) 0%, rgba(255, 255, 255, 0.8) 50%, rgba(255, 255, 255, 0.00) 100%);
+  background: linear-gradient(
+    270deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.8) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
 }
 
 .yellow-text {
@@ -811,7 +813,7 @@ a {
   opacity: 0;
 }
 
-.tada1{
+.tada1 {
   position: absolute;
   top: 43vh;
   left: 4vh;
@@ -820,7 +822,7 @@ a {
   z-index: 50;
 }
 
-.tada2{
+.tada2 {
   position: absolute;
   top: 50vh;
   left: 35vh;
@@ -1049,7 +1051,7 @@ a {
   position: relative;
   color: var(--color-text-alt);
   font-size: 1.5vh;
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-style: normal;
   font-weight: 700;
   text-align: left;
@@ -1059,11 +1061,9 @@ a {
   align-items: center;
 }
 
-
-
 .text_selected {
-  color: #110E1B;
-  background-color: #FFFFFF;
+  color: #110e1b;
+  background-color: #ffffff;
   border-radius: 2vh;
 }
 
@@ -1104,20 +1104,20 @@ a {
 }
 
 .slots_header {
-    position: absolute;
-    top: 8vh;
-    left: 50%;
-    transform: translate(-50%);
-    width: 100%;
-    height: auto;
-    z-index: 15;
-    text-align: left;
-    color: var(--color-text-alt);
-    font-size: 3.5vh;
-    font-family: "Sora", sans-serif;
-    font-style: normal;
-    font-weight: 700;
-    opacity: 0.8;
+  position: absolute;
+  top: 8vh;
+  left: 50%;
+  transform: translate(-50%);
+  width: 100%;
+  height: auto;
+  z-index: 15;
+  text-align: left;
+  color: var(--color-text-alt);
+  font-size: 3.5vh;
+  font-family: 'Sora', sans-serif;
+  font-style: normal;
+  font-weight: 700;
+  opacity: 0.8;
 }
 
 .slots_row {
@@ -1219,10 +1219,10 @@ a {
   z-index: 1;
   mask-repeat: no-repeat;
   mask-position: 50% 50%;
-  mask-size: 5Vh;
+  mask-size: 5vh;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: 50% 50%;
-  -webkit-mask-size: 5Vh;
+  -webkit-mask-size: 5vh;
   opacity: 0;
 }
 .char1 {
@@ -1317,7 +1317,7 @@ a {
   z-index: 9999;
   border-radius: 4vh;
   background: var(--color-primary-gradient);
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-optical-sizing: auto;
   font-weight: 600;
   background-color: var(--color-text-link-default);
@@ -1332,8 +1332,6 @@ a {
   opacity: 0;
 }
 
-
-
 .watch_again {
   position: absolute;
   top: 80vh;
@@ -1342,7 +1340,7 @@ a {
   width: 85%;
   height: 7vh;
   text-align: center;
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-optical-sizing: auto;
   font-weight: 600;
   font-style: normal;
@@ -1376,7 +1374,12 @@ a {
   top: -6vh;
   left: -40%;
   transform: rotate(20deg);
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.00) 0%, #FFF 50%, rgba(255, 255, 255, 0.00) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    #fff 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
   mix-blend-mode: overlay;
 }
 
@@ -1384,9 +1387,9 @@ a {
   position: absolute;
   top: 50%;
   left: 50%;
-  color: #833C08;
+  color: #833c08;
   text-align: center;
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-size: 5.5vh;
   font-style: normal;
   font-weight: 900;
@@ -1395,14 +1398,13 @@ a {
   width: 42vh;
   height: 18vh;
   z-index: 10;
-  display: flex!important;
-  align-items: center!important;
+  display: flex !important;
+  align-items: center !important;
   word-break: break-word;
-  justify-content: center!important;
-
+  justify-content: center !important;
 }
 
-.video-player{
+.video-player {
   position: absolute;
   left: 50%;
   transform: translate(-50%);
@@ -1436,14 +1438,13 @@ a {
   0% {
     filter: brightness(1);
   }
-    50% {
-        filter: brightness(1.2);
-    }
+  50% {
+    filter: brightness(1.2);
+  }
   100% {
     filter: brightness(1);
   }
 }
-
 
 #sgm2 {
   opacity: 0;
@@ -1477,7 +1478,7 @@ a {
   z-index: 9999;
   border-radius: 5vh;
   background: var(--color-primary-gradient);
-  font-family: "Sora", sans-serif;
+  font-family: 'Sora', sans-serif;
   font-optical-sizing: auto;
   font-weight: 700;
   font-style: normal;
@@ -1488,7 +1489,7 @@ a {
   align-items: center;
   cursor: pointer;
   overflow: hidden;
-  background-color: #00EDA6;
+  background-color: #00eda6;
 }
 
 .flare {
@@ -1498,7 +1499,12 @@ a {
   top: -6vh;
   left: -20%;
   transform: rotate(20deg);
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, #FFF 50%, rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    #fff 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
   mix-blend-mode: overlay;
 }
 
@@ -1596,7 +1602,6 @@ a {
   }
 }
 
-
 .game_thumbnail_border {
   position: relative;
   height: 40vh;
@@ -1604,8 +1609,17 @@ a {
   aspect-ratio: 5/7;
   left: 50%;
   transform: translate(-50%);
-  background: linear-gradient(94deg, #A432B5 5.66%, #D75FFF 11.66%, #A841B7 28.49%,
-          #8B29D9 51.5%, #7B35ED 68.33%, #7140FF 83.6%, #4B86DE 93.72%, #4C6BDA 96.6%);
+  background: linear-gradient(
+    94deg,
+    #a432b5 5.66%,
+    #d75fff 11.66%,
+    #a841b7 28.49%,
+    #8b29d9 51.5%,
+    #7b35ed 68.33%,
+    #7140ff 83.6%,
+    #4b86de 93.72%,
+    #4c6bda 96.6%
+  );
   border-radius: 2.3vh;
   margin-bottom: 3vh;
   margin-top: 3vh;
@@ -1635,14 +1649,496 @@ a {
     left: 50%;
     transform: translate(-50%);
   }
-  
 }
 
 .play_button {
   position: relative;
   left: 50%;
-  transform: translate( -50%);
+  transform: translate(-50%);
   width: 15vh;
   height: 15vh;
   margin-top: 3vh;
+}
+
+/* ====================== Season 2 — single video (cover) ====================== */
+.video-player {
+  position: absolute;
+  inset: 0;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
+}
+
+.video-container {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* ====================== Season 2 — scene styles ====================== */
+$neon-cyan: #38e0ff;
+$chip-bg: rgba(40, 58, 150, 0.55);
+
+/* greeting */
+.scene-hi {
+  position: absolute;
+  top: to-frame-percent-y(748);
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: to-dvh(55);
+  font-weight: 500;
+  line-height: normal;
+}
+.scene-name {
+  position: absolute;
+  top: to-frame-percent-y(840);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: to-dvh(930);
+  color: #fafafa;
+  font-size: to-dvh(140);
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: center;
+}
+.scene-name,
+.scene-game-name,
+.scene-final-name,
+.scene-flame-title {
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+/* slots / days */
+.slot-cards {
+  position: absolute;
+  top: to-frame-percent-y(787);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: to-dvh(24);
+  width: to-dvh(881);
+  height: to-dvh(429);
+  margin: 0;
+}
+.slot-card {
+  position: relative;
+  flex: 0 0 auto;
+  width: to-dvh(247);
+  height: to-dvh(313);
+}
+/* the dark card box that clips the spinning reel */
+.slot-window {
+  position: absolute;
+  inset: 0;
+  border-radius: to-dvh(24);
+  overflow: hidden;
+  background: #1d2386;
+  border: to-dvh(2) solid #0032ff;
+}
+/* vertical reel of digits; --reel-y (dvh) is driven by GSAP */
+.slot-reel {
+  --reel-y: 0dvh;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: to-dvh(113);
+  margin-left: to-dvh(-56.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: to-dvh(6);
+  transform: translateY(var(--reel-y));
+  will-change: transform;
+}
+/* single neon glow frame (image) covering the whole card group, as in Figma */
+.slot-neon-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+.slot-digit {
+  width: 100%;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: to-dvh(160.973);
+  color: #605fd1;
+  line-height: 1.1;
+  text-align: center;
+}
+.scene-top-text {
+  position: absolute;
+  top: to-frame-percent-y(615);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  /* centered horizontally via margin (not transform), so GSAP's y/opacity
+     tween cannot clobber horizontal alignment */
+  transform: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: fit-content;
+  max-width: to-dvh(760);
+  margin-bottom: 0;
+  color: #fff;
+  font-size: to-dvh(55);
+  font-weight: 500;
+  line-height: normal;
+  white-space: nowrap;
+}
+.scene-bottom-text {
+  position: absolute;
+  top: to-frame-percent-y(1236);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  transform: none;
+  width: fit-content;
+  max-width: to-dvh(900);
+  margin-top: 0;
+  color: #fff;
+  font-size: to-dvh(55);
+  font-weight: 500;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+/* falling chips */
+.chips {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+.chips--lower {
+  margin-top: 28vh;
+}
+.chip {
+  display: inline-block;
+  background: $chip-bg;
+  border-radius: 1.6vh;
+  padding: 1vh 2.4vh;
+  color: #fff;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 4.2vh;
+  line-height: 1.15;
+  text-align: center;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 0.6vh 2vh rgba(0, 0, 0, 0.25);
+  max-width: 46vh;
+}
+.chip--a {
+  transform: translateX(-6vh);
+}
+.chip--b {
+  transform: translateX(6vh);
+  margin-top: 1.4vh;
+}
+
+/* scene 4: journey chips — exact card geometry from Figma node 31550:220747.
+   Wrapper is a 1080x1920 design canvas scaled to contain inside the frame, so
+   children use raw Figma px via px() and stay pixel-accurate + centered on any
+   screen ratio (no horizontal overflow / mis-left on narrow phones). */
+.chips--journey {
+  --u: min(100cqw / 1080, 100cqh / 1920);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(1080 * var(--u));
+  height: calc(1920 * var(--u));
+  transform: translate(-50%, -50%);
+}
+.journey-card {
+  --journey-y: 0dvh;
+  --journey-rotate: 0deg;
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: none;
+  margin: 0;
+  color: #fafafa;
+  font-family: 'Sora', sans-serif;
+  font-size: px(70);
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-align: center;
+  background: #1d2386;
+  border-color: #0032ff;
+  border-style: solid;
+  border-radius: px(24);
+  box-shadow: none;
+  backdrop-filter: none;
+  transform-origin: center;
+  transform: translateY(var(--journey-y)) rotate(var(--journey-rotate));
+  will-change: transform, opacity;
+}
+.journey-card--top {
+  top: px(792);
+  left: px(192);
+  padding: px(26) px(50) px(27) px(48);
+  border-width: px(2);
+  --journey-rotate: 2.15deg;
+  z-index: 1;
+}
+.journey-card--bottom {
+  top: px(922);
+  left: px(258);
+  padding: px(29) px(50) px(30) px(48);
+  border-width: px(1);
+  --journey-rotate: -2.66deg;
+  z-index: 2;
+}
+
+/* scene 6: "moments" cards — exact card geometry from Figma node 31550:220817.
+   Same 1080x1920 contain canvas as scene 4; children use px(). */
+.gift-cards {
+  --u: min(100cqw / 1080, 100cqh / 1920);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(1080 * var(--u));
+  height: calc(1920 * var(--u));
+  transform: translate(-50%, -50%);
+}
+.gift-card {
+  --gift-y: 0dvh;
+  --gift-rotate: 0deg;
+  position: absolute;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 0;
+  color: #fafafa;
+  font-family: 'Sora', sans-serif;
+  font-size: px(70);
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-align: center;
+  background: #1d2386;
+  border-color: #0032ff;
+  border-style: solid;
+  border-radius: px(24);
+  /* center via transform; GSAP animates only --gift-y so rotate/centering stay intact */
+  transform-origin: center;
+  transform: translate(-50%, -50%) translateY(var(--gift-y)) rotate(var(--gift-rotate));
+  will-change: transform, opacity;
+}
+.gift-card--top {
+  top: px(885);
+  padding: px(26) px(50) px(27) px(48);
+  border-width: px(2);
+  --gift-rotate: 2.15deg;
+  z-index: 1;
+}
+.gift-card--bottom {
+  top: px(1026);
+  padding: px(29) px(50) px(30) px(48);
+  border-width: px(1);
+  --gift-rotate: -2.66deg;
+  z-index: 2;
+}
+
+/* generic falling cards (scenes 8/10/12/14/16) — same 1080x1920 contain canvas
+   and card geometry as scenes 4/6. Each card is centred on a design point via
+   --cx/--cy (px from canvas origin) and tilted via --tilt; GSAP animates only
+   --fall-y so the rotation stays intact. Card variants:
+   --a = 2px border, --b = 1px border (matches Figma). */
+.fall-cards {
+  --u: min(100cqw / 1080, 100cqh / 1920);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(1080 * var(--u));
+  height: calc(1920 * var(--u));
+  transform: translate(-50%, -50%);
+}
+.fall-card {
+  --cx: 540;
+  --cy: 960;
+  --tilt: 0deg;
+  --fall-y: 0dvh;
+  position: absolute;
+  left: calc(var(--cx) * var(--u));
+  top: calc(var(--cy) * var(--u));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 0;
+  color: #fafafa;
+  font-family: 'Sora', sans-serif;
+  font-size: px(70);
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-align: center;
+  background: #1d2386;
+  border-color: #0032ff;
+  border-style: solid;
+  border-radius: px(24);
+  transform-origin: center;
+  transform: translate(-50%, -50%) translateY(var(--fall-y)) rotate(var(--tilt));
+  will-change: transform, opacity;
+}
+.fall-card--a {
+  padding: px(26) px(50) px(27) px(48);
+  border-width: px(2);
+  z-index: 1;
+}
+.fall-card--b {
+  padding: px(29) px(50) px(30) px(48);
+  border-width: px(1);
+  z-index: 2;
+}
+
+/* level cube — exact values from Figma node 31550:220801 */
+.cube-img {
+  position: absolute;
+  top: to-frame-percent-y(515);
+  left: 50%;
+  transform: translateX(-50%);
+  width: to-dvh(702);
+  height: to-dvh(702);
+  object-fit: contain;
+}
+.scene-cube-top {
+  position: absolute;
+  top: to-frame-percent-y(1311);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Sora', sans-serif;
+  font-size: to-dvh(55);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+}
+.scene-cube-level {
+  position: absolute;
+  top: to-frame-percent-y(1394);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Sora', sans-serif;
+  font-size: to-dvh(95);
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+.scene-cube-bottom {
+  position: absolute;
+  top: to-frame-percent-y(1529);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Sora', sans-serif;
+  font-size: to-dvh(55);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+}
+
+/* number scenes */
+.scene-num-label {
+  opacity: 0.85;
+  margin-bottom: 2vh;
+}
+.big-number {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 22vh;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  left: 50%;
+  transform: translateX(-50%);
+  position: relative;
+}
+
+/* game of the season */
+.scene-game-label {
+  opacity: 0.85;
+  margin-bottom: 1vh;
+}
+.scene-game-name {
+  text-transform: uppercase;
+  margin-bottom: 3vh;
+}
+.game-frame {
+  position: relative;
+  height: 40vh;
+  width: 28.6vh;
+  aspect-ratio: 5/7;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5vh;
+  border-radius: 2.4vh;
+  border: 0.3vh solid $neon-cyan;
+  box-shadow:
+    0 0 2.4vh rgba(56, 224, 255, 0.65),
+    inset 0 0 1.6vh rgba(56, 224, 255, 0.35);
+}
+.game-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 2vh;
+}
+
+/* lock */
+.scene-lock-text {
+  margin-top: 36vh;
+  opacity: 0.92;
+}
+
+/* flame out */
+.scene-flame-title {
+  margin-bottom: 2vh;
+}
+.scene-flame-sub {
+  opacity: 0.8;
+}
+
+/* final */
+.scene-final-top {
+  opacity: 0.85;
+  margin-bottom: 1vh;
+}
+.cta-primary {
+  background: linear-gradient(180deg, #3ff0a8 0%, #16c98a 100%);
+  color: #053;
+  color: #06402b;
+}
+.cta-replay {
+  top: 81vh;
+  background: transparent;
+  color: #fff;
+  gap: 1.2vh;
+  align-items: center;
+  @include media(M) {
+    top: 77vh;
+  }
+}
+.watch_again_icon {
+  width: 3vh;
+  height: 3vh;
+  filter: brightness(0) invert(1);
 }
