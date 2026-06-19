@@ -44,6 +44,15 @@ $figma-height: 1920;
   @return calc(#{strip-unit($n)} * var(--u));
 }
 
+// Absolute-position an element by its Figma top-left in raw design px, inside a
+// cover-scaled 1080x1920 canvas (see .stories-segment / .text_container --u).
+// Use for Season 2 overlays so coordinates copy 1:1 from Figma.
+@mixin at($x, $y) {
+  position: absolute;
+  left: px($x);
+  top: px($y);
+}
+
 @mixin media($breakpoint) {
     @if $breakpoint == M {
       @media (min-width: 768px) {

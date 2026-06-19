@@ -43,6 +43,11 @@
      pixel is measured against the story frame (mobile = viewport, >=768 = 90%
      box), never the raw viewport */
   container-type: size;
+  /* SINGLE coordinate system for Season 2: the 1080x1920 design canvas mapped
+     with the SAME cover-scale as the background video (object-fit: cover), so
+     every overlay sits exactly on the video on any screen ratio. Use px(N) for
+     all Season 2 sizes/positions; it resolves to calc(N * var(--u)). */
+  --u: max(100cqw / 1080, 100cqh / 1920);
   @include media(M) {
     width: 58.2vh;
     left: 50%;
@@ -57,11 +62,17 @@
 
 .stories-segment {
   z-index: 1;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  /* The segment IS the 1080x1920 design canvas, cover-scaled (--u) and centred
+     so it overlaps the cover video 1:1. Absolutely-positioned children use
+     px()/at() in raw Figma coordinates; flow children stay flex-centred in the
+     design canvas. NOTE: GSAP toggles `display` inline and animates only
+     opacity on the root, so this CSS transform is never clobbered. */
   position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(1080 * var(--u));
+  height: calc(1920 * var(--u));
+  transform: translate(-50%, -50%);
   flex-direction: column;
   justify-content: center;
   transform-origin: center;
@@ -1685,24 +1696,24 @@ $chip-bg: rgba(40, 58, 150, 0.55);
 /* greeting */
 .scene-hi {
   position: absolute;
-  top: to-frame-percent-y(748);
+  top: px(748);
   left: 50%;
   transform: translateX(-50%);
   margin-bottom: 0;
   color: rgba(255, 255, 255, 0.75);
-  font-size: to-dvh(55);
+  font-size: px(55);
   font-weight: 500;
   line-height: normal;
 }
 .scene-name {
   position: absolute;
-  top: to-frame-percent-y(840);
+  top: px(840);
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: to-dvh(930);
+  max-width: px(930);
   color: #fafafa;
-  font-size: to-dvh(140);
+  font-size: px(140);
   font-weight: 800;
   line-height: 1.1;
   text-align: center;
@@ -1781,7 +1792,7 @@ $chip-bg: rgba(40, 58, 150, 0.55);
 }
 .scene-top-text {
   position: absolute;
-  top: to-frame-percent-y(615);
+  top: px(615);
   left: 0;
   right: 0;
   margin-inline: auto;
@@ -1792,26 +1803,26 @@ $chip-bg: rgba(40, 58, 150, 0.55);
   flex-direction: column;
   align-items: center;
   width: fit-content;
-  max-width: to-dvh(760);
+  max-width: px(760);
   margin-bottom: 0;
   color: #fff;
-  font-size: to-dvh(55);
+  font-size: px(55);
   font-weight: 500;
   line-height: normal;
   white-space: nowrap;
 }
 .scene-bottom-text {
   position: absolute;
-  top: to-frame-percent-y(1236);
+  top: px(1236);
   left: 0;
   right: 0;
   margin-inline: auto;
   transform: none;
   width: fit-content;
-  max-width: to-dvh(900);
+  max-width: px(900);
   margin-top: 0;
   color: #fff;
-  font-size: to-dvh(55);
+  font-size: px(55);
   font-weight: 500;
   line-height: normal;
   white-space: nowrap;
@@ -1855,7 +1866,7 @@ $chip-bg: rgba(40, 58, 150, 0.55);
    children use raw Figma px via px() and stay pixel-accurate + centered on any
    screen ratio (no horizontal overflow / mis-left on narrow phones). */
 .chips--journey {
-  --u: min(100cqw / 1080, 100cqh / 1920);
+  /* inherits cover --u from .text_container (single coordinate system) */
   position: absolute;
   top: 50%;
   left: 50%;
@@ -1910,7 +1921,7 @@ $chip-bg: rgba(40, 58, 150, 0.55);
 /* scene 6: "moments" cards — exact card geometry from Figma node 31550:220817.
    Same 1080x1920 contain canvas as scene 4; children use px(). */
 .gift-cards {
-  --u: min(100cqw / 1080, 100cqh / 1920);
+  /* inherits cover --u from .text_container (single coordinate system) */
   position: absolute;
   top: 50%;
   left: 50%;
@@ -1965,7 +1976,7 @@ $chip-bg: rgba(40, 58, 150, 0.55);
    --fall-y so the rotation stays intact. Card variants:
    --a = 2px border, --b = 1px border (matches Figma). */
 .fall-cards {
-  --u: min(100cqw / 1080, 100cqh / 1920);
+  /* inherits cover --u from .text_container (single coordinate system) */
   position: absolute;
   top: 50%;
   left: 50%;
@@ -2015,42 +2026,42 @@ $chip-bg: rgba(40, 58, 150, 0.55);
 /* level cube — exact values from Figma node 31550:220801 */
 .cube-img {
   position: absolute;
-  top: to-frame-percent-y(515);
+  top: px(515);
   left: 50%;
   transform: translateX(-50%);
-  width: to-dvh(702);
-  height: to-dvh(702);
+  width: px(702);
+  height: px(702);
   object-fit: contain;
 }
 .scene-cube-top {
   position: absolute;
-  top: to-frame-percent-y(1311);
+  top: px(1311);
   left: 50%;
   transform: translateX(-50%);
   font-family: 'Sora', sans-serif;
-  font-size: to-dvh(55);
+  font-size: px(55);
   font-weight: 500;
   color: rgba(255, 255, 255, 0.75);
   white-space: nowrap;
 }
 .scene-cube-level {
   position: absolute;
-  top: to-frame-percent-y(1394);
+  top: px(1394);
   left: 50%;
   transform: translateX(-50%);
   font-family: 'Sora', sans-serif;
-  font-size: to-dvh(95);
+  font-size: px(95);
   font-weight: 700;
   color: #fff;
   white-space: nowrap;
 }
 .scene-cube-bottom {
   position: absolute;
-  top: to-frame-percent-y(1529);
+  top: px(1529);
   left: 50%;
   transform: translateX(-50%);
   font-family: 'Sora', sans-serif;
-  font-size: to-dvh(55);
+  font-size: px(55);
   font-weight: 500;
   color: rgba(255, 255, 255, 0.75);
   white-space: nowrap;
