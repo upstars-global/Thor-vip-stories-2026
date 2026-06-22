@@ -1,0 +1,886 @@
+@import './_mixins.scss';
+@import './tokens';
+
+.story-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  transform-origin: center center;
+}
+
+.story_controls {
+  position: absolute;
+  z-index: 999;
+  width: 100%;
+  height: 82%;
+  top: 0;
+  left: 0;
+  @include media(M) {
+    height: 100%;
+    width: auto;
+    left: 50%;
+    transform: translate(-50%);
+  }
+}
+
+.text_container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  /* Scene canvases derive their design-pixel scale from the story frame. */
+  container-type: size;
+  /* Season 2 uses one 1080x1920 coordinate system. `px(N)` scales raw Figma
+     coordinates with contain behavior, while the video background remains cover. */
+  --u: min(100cqw / 1080, 100cqh / 1920);
+  /* Kept separate so scene content can opt into a different scale if needed. */
+  --content-u: var(--u);
+  @include media(M) {
+    width: 58.2vh;
+    left: 50%;
+    transform: translate(-50%);
+    height: 90%;
+    top: 5%;
+    display: flex;
+    overflow: hidden;
+    border-radius: 3vh;
+  }
+}
+
+.stories-segment {
+  z-index: 1;
+  /* Each segment is the scaled 1080x1920 design canvas. GSAP toggles display
+     and opacity on the root, so this centering transform stays stable. */
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(1080 * var(--u));
+  height: calc(1920 * var(--u));
+  transform: translate(-50%, -50%);
+  flex-direction: column;
+  justify-content: center;
+  transform-origin: center;
+  display: none;
+}
+
+.h2 {
+  font-size: calc(15vh / 1.75);
+  color: var(--color-text-alt);
+  text-align: center;
+  font-family: 'Sora', sans-serif;
+  font-style: normal;
+  font-weight: $font-weight--black;
+  position: relative;
+  line-height: normal;
+  word-break: break-all;
+  @include media(M) {
+    max-width: 57vh;
+    left: 50%;
+    transform: translate(-50%);
+  }
+}
+
+.h3 {
+  font-size: 4vh;
+  color: var(--color-text-alt);
+  text-align: center;
+  font-family: 'Sora', sans-serif;
+  font-style: normal;
+  font-weight: $font-weight--bold;
+  position: relative;
+  line-height: normal;
+  @include media(M) {
+    max-width: 57vh;
+    left: 50%;
+    transform: translate(-50%);
+  }
+}
+
+.h5 {
+  font-size: calc(15vh / 5.1);
+  color: var(--color-text-body);
+  text-align: center;
+  font-family: 'Sora', sans-serif;
+  font-style: normal;
+  font-weight: $font-weight--normal;
+  position: relative;
+  line-height: normal;
+  left: 50%;
+  transform: translate(-50%);
+  @include media(M) {
+    max-width: 57vh;
+    left: 50%;
+    transform: translate(-50%);
+  }
+}
+
+.video-player {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%);
+  height: 100%;
+  width: auto;
+  overflow: hidden;
+  top: 0;
+  user-select: none;
+  pointer-events: none;
+  z-index: 0;
+  @include media(M) {
+    height: 90%;
+    top: 5%;
+    border-radius: 1rem;
+    filter: drop-shadow(0px 0px 15px rgba(208, 0, 255, 0.4));
+  }
+}
+
+.video-container {
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  user-select: none;
+  pointer-events: none;
+}
+
+.close_button {
+  position: fixed;
+  left: 0;
+  margin-left: 87%;
+  transform: unset;
+  top: 5vh;
+  z-index: 9999;
+  cursor: pointer;
+  @include media(M) {
+    left: 50%;
+    transform: translate(22.5vh);
+    margin-left: 0;
+    top: 11.5vh;
+  }
+}
+
+.pause_button {
+  position: absolute;
+  z-index: 500;
+  top: 0;
+  left: 45vh;
+  @include media(M) {
+    left: 50%;
+    transform: translate(18vh);
+    top: 11.8vh;
+  }
+}
+
+.max_with {
+  max-width: 35vh;
+  left: 50%;
+  transform: translate(-50%);
+  text-align: center;
+}
+
+.max_with_bigger {
+  max-width: 40vh;
+  left: 50%;
+  transform: translate(-50%);
+  text-align: center;
+}
+
+.end_button {
+  text-decoration: none;
+  position: absolute;
+  width: 45vh;
+  top: 72vh;
+  padding: 1.5vh 0;
+  border-radius: 10vh;
+  font-size: 3.2vh;
+  font-family: 'Sora', sans-serif;
+  font-style: normal;
+  font-weight: 700;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  flex-direction: row;
+  left: 50%;
+  transform: translate(-50%);
+  cursor: pointer;
+  z-index: 1000;
+  @include media(M) {
+    top: 68vh;
+  }
+}
+
+a {
+  text-decoration: none !important;
+}
+
+.end_button:hover {
+  text-decoration: none;
+}
+
+.watch_again_icon {
+  height: 4vh;
+  width: auto;
+  position: relative;
+  margin-right: 1vh;
+}
+
+.info_row {
+  position: absolute;
+  max-width: 83%;
+  display: flex;
+  justify-content: left;
+  margin-top: 1.2vh;
+  margin-left: 5%;
+  z-index: 10;
+  align-items: center;
+
+  @include media(M) {
+    margin-top: 7vh;
+    margin-left: 0;
+    left: 50%;
+    width: 50vh;
+    transform: translate(-50%);
+  }
+}
+
+.story_icon {
+  position: relative;
+  top: 0;
+  left: 0;
+  margin-left: 0;
+  height: 6.3vh;
+  aspect-ratio: 379/183;
+  z-index: 5;
+}
+
+.play_button {
+  position: relative;
+  left: 50%;
+  transform: translate(-50%);
+  width: 15vh;
+  height: 15vh;
+  margin-top: 3vh;
+}
+
+/* Season 2 video background */
+.video-player {
+  position: absolute;
+  inset: 0;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
+}
+
+.video-container {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Scene 2: greeting */
+.scene-hi {
+  position: absolute;
+  top: px(748);
+  left: 50%;
+  @include cx-enter;
+  margin-bottom: 0;
+  color: $story-text-muted;
+  font-size: px(55);
+  font-weight: 500;
+  line-height: normal;
+}
+
+.scene-name {
+  position: absolute;
+  top: px(840);
+  left: 50%;
+  @include cx-enter;
+  width: 100%;
+  max-width: px(930);
+  color: $story-text-strong;
+  font-size: px(140);
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: center;
+}
+.scene-name,
+.scene-game-name,
+.scene-final-name,
+.scene-flame-title {
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+/* Shared text boxes keep their design width while allowing translations to wrap
+   naturally instead of hard-coding line breaks in the template. */
+.scene-num-label,
+.scene-game-label,
+.scene-game-name,
+.scene-flame-title,
+.scene-flame-sub,
+.scene-final-top,
+.scene-lock-text,
+.scene-cube-top,
+.scene-cube-bottom {
+  text-wrap: balance;
+}
+
+/* Scene 3: season rhythm and day counter */
+.slot-cards {
+  position: absolute;
+  top: px(787);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: px(24);
+  width: px(881);
+  height: px(429);
+  margin: 0;
+}
+
+.slot-card {
+  position: relative;
+  flex: 0 0 auto;
+  width: px(247);
+  height: px(313);
+}
+
+/* Dark card window that clips the spinning digit reel below the neon overlay. */
+.slot-window {
+  position: absolute;
+  inset: 0;
+  border-radius: px(24);
+  overflow: hidden;
+  background: $story-card-bg;
+  border: px(2) solid $story-card-border;
+}
+
+/* `--reel-y` is unitless because GSAP interpolates it; CSS applies the current
+   scene scale so the reel stays aligned after resize. */
+.slot-reel {
+  --reel-y: 0;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: px(113);
+  margin-left: px(-56.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: px(6);
+  transform: translateY(calc(var(--reel-y) * var(--u)));
+  will-change: transform;
+}
+
+/* Single neon overlay image aligned over all three slot windows. */
+.slot-neon-frame {
+  position: absolute;
+  inset: 0;
+  inset: px(8) auto auto px(-4);
+  width: 100%;
+  height: 100%;
+  width: calc(881 * var(--u));
+  height: calc(423 * var(--u));
+  object-fit: fill;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+
+.slot-digit {
+  width: 100%;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: px(160.973);
+  color: $story-slot-digit;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.scene-top-text {
+  position: absolute;
+  top: px(615);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  /* Margin centering keeps GSAP y/opacity tweens from touching horizontal layout. */
+  transform: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: fit-content;
+  max-width: px(760);
+  margin-bottom: 0;
+  color: $story-text-primary;
+  font-size: px(55);
+  font-weight: 500;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.scene-bottom-text {
+  position: absolute;
+  top: px(1236);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  transform: none;
+  width: fit-content;
+  max-width: px(900);
+  margin-top: 0;
+  color: $story-text-primary;
+  font-size: px(55);
+  font-weight: 500;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+/* Shared card styles */
+.chips {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.chip {
+  display: inline-block;
+  background: $story-chip-bg;
+  border-radius: 1.6vh;
+  padding: 1vh 2.4vh;
+  color: $story-text-primary;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 4.2vh;
+  line-height: 1.15;
+  text-align: center;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 0.6vh 2vh $story-card-shadow;
+  max-width: 46vh;
+}
+
+.chip--a {
+  transform: translateX(-6vh);
+}
+
+.chip--b {
+  transform: translateX(6vh);
+  margin-top: 1.4vh;
+}
+
+/* Scene 4: journey cards */
+.chips--journey {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(1080 * var(--u));
+  height: calc(1920 * var(--u));
+  transform: translate(-50%, -50%);
+}
+
+.journey-card {
+  --journey-y: 0dvh;
+  --journey-rotate: 0deg;
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: none;
+  margin: 0;
+  color: $story-text-strong;
+  font-family: 'Sora', sans-serif;
+  /* `fitCards()` may lower --fit for long localized text. */
+  font-size: calc(70 * var(--u) * var(--fit, 1));
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-align: center;
+  background: $story-card-bg;
+  border-color: $story-card-border;
+  border-style: solid;
+  border-radius: px(24);
+  box-shadow: none;
+  backdrop-filter: none;
+  transform-origin: center;
+  transform: translateY(var(--journey-y)) rotate(var(--journey-rotate));
+  will-change: transform, opacity;
+}
+
+.journey-card--top {
+  top: px(792);
+  left: px(192);
+  padding: px(26) px(50) px(27) px(48);
+  border-width: px(2);
+  --journey-rotate: 2.15deg;
+  z-index: 1;
+}
+
+.journey-card--bottom {
+  top: px(922);
+  left: px(258);
+  padding: px(29) px(50) px(30) px(48);
+  border-width: px(1);
+  --journey-rotate: -2.66deg;
+  z-index: 2;
+}
+
+/* Scene 6: memorable moments cards */
+.gift-cards {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(1080 * var(--u));
+  height: calc(1920 * var(--u));
+  transform: translate(-50%, -50%);
+}
+
+.gift-card {
+  --gift-y: 0dvh;
+  --gift-rotate: 0deg;
+  position: absolute;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 0;
+  color: $story-text-strong;
+  font-family: 'Sora', sans-serif;
+  font-size: calc(70 * var(--u) * var(--fit, 1));
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-align: center;
+  background: $story-card-bg;
+  border-color: $story-card-border;
+  border-style: solid;
+  border-radius: px(24);
+  /* GSAP animates only --gift-y, preserving centering and rotation. */
+  transform-origin: center;
+  transform: translate(-50%, -50%) translateY(var(--gift-y))
+    rotate(var(--gift-rotate));
+  will-change: transform, opacity;
+}
+
+.gift-card--top {
+  top: px(885);
+  padding: px(26) px(50) px(27) px(48);
+  border-width: px(2);
+  --gift-rotate: 2.15deg;
+  z-index: 1;
+}
+
+.gift-card--bottom {
+  top: px(1026);
+  padding: px(29) px(50) px(30) px(48);
+  border-width: px(1);
+  --gift-rotate: -2.66deg;
+  z-index: 2;
+}
+
+/* Scenes 8, 10, 12, 14: falling text cards. Cards are positioned by design
+   coordinates (--cx/--cy), while GSAP animates only --fall-y. */
+.fall-cards {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(1080 * var(--u));
+  height: calc(1920 * var(--u));
+  transform: translate(-50%, -50%);
+}
+
+.fall-card {
+  --cx: 540;
+  --cy: 960;
+  --tilt: 0deg;
+  --fall-y: 0dvh;
+  position: absolute;
+  left: calc(var(--cx) * var(--u));
+  top: calc(var(--cy) * var(--u));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 0;
+  color: $story-text-strong;
+  font-family: 'Sora', sans-serif;
+  font-size: calc(70 * var(--u) * var(--fit, 1));
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-align: center;
+  background: $story-card-bg;
+  border-color: $story-card-border;
+  border-style: solid;
+  border-radius: px(24);
+  transform-origin: center;
+  transform: translate(-50%, -50%) translateY(var(--fall-y)) rotate(var(--tilt));
+  will-change: transform, opacity;
+}
+
+.fall-card--a {
+  padding: px(26) px(50) px(27) px(48);
+  border-width: px(2);
+  z-index: 1;
+}
+
+.fall-card--b {
+  padding: px(29) px(50) px(30) px(48);
+  border-width: px(1);
+  z-index: 2;
+}
+
+/* Scene 5: VIP level cube */
+.cube-img {
+  position: absolute;
+  top: px(515);
+  left: 50%;
+  @include cx-enter;
+  width: px(702);
+  height: px(702);
+  object-fit: contain;
+}
+
+.scene-cube-top {
+  position: absolute;
+  top: px(1311);
+  left: 50%;
+  @include cx-enter;
+  width: px(820);
+  font-family: 'Sora', sans-serif;
+  font-size: px(55);
+  font-weight: 500;
+  color: $story-text-muted;
+  text-align: center;
+}
+
+.scene-cube-level {
+  position: absolute;
+  top: px(1394);
+  left: 50%;
+  @include cx-enter;
+  width: px(820);
+  font-family: 'Sora', sans-serif;
+  font-size: px(95);
+  font-weight: 700;
+  color: $story-text-primary;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.scene-cube-bottom {
+  position: absolute;
+  top: px(1529);
+  left: 50%;
+  @include cx-enter;
+  width: px(820);
+  font-family: 'Sora', sans-serif;
+  font-size: px(55);
+  font-weight: 500;
+  color: $story-text-muted;
+  text-align: center;
+}
+
+/* Centered scene elements use `at-cx()`, which keeps horizontal centering out of
+   `transform` so GSAP entrance tweens can animate transform safely. */
+
+/* Number stat scenes */
+.scene-num-label {
+  @include at-cx(684, 737);
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+  font-size: px(55);
+  line-height: normal;
+  text-align: center;
+  color: $story-text-primary;
+  opacity: 0.85;
+}
+
+.big-number {
+  @include at-cx(776, 480);
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: px(450);
+  line-height: normal;
+  color: $story-text-strong;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Scene 17: gifts collection has its own label and number placement. */
+.scene-num-label--gifts {
+  @include at-cx(716, 696);
+}
+
+.big-number--gifts {
+  top: px(739);
+}
+
+/* Scene 15: game of the season. The desktop offset moves the whole scene as one
+   group, preserving the spacing between title, game name, and frame. */
+#stories-segment-15 {
+  --s15-shift: 0px;
+  @include media(M) {
+    --s15-shift: #{px(60)};
+  }
+}
+
+.scene-game-label {
+  @include at-cx(222, 743);
+  top: calc(px(222) + var(--s15-shift));
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+  font-size: content-px(55);
+  line-height: normal;
+  text-align: center;
+  color: $story-text-muted;
+  opacity: 0.85;
+}
+
+.scene-game-name {
+  @include at-cx(315, 994);
+  top: calc(px(315) + var(--s15-shift));
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: content-px(80);
+  line-height: normal;
+  text-transform: uppercase;
+  text-align: center;
+  color: $story-text-primary;
+}
+/* The PNG contains the neon/flame border and a transparent inner window; the
+   thumbnail is positioned separately underneath that window. */
+.game-fire-frame {
+  position: absolute;
+  top: calc(px(508) + var(--s15-shift));
+  left: 50%;
+  @include cx-enter;
+  width: content-px(1092);
+  height: content-px(1327);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Slightly oversized so the game art sits under the PNG border without gaps. */
+.game-frame {
+  position: absolute;
+  top: calc(px(635) + var(--s15-shift));
+  left: px(544);
+  @include cx-enter;
+  width: content-px(758);
+  height: content-px(1081);
+  border-radius: content-px(48);
+  overflow: hidden;
+  z-index: 1;
+}
+
+.game-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Scene 16: rewards lock message */
+.scene-lock-text {
+  @include at-cx(1359, 737);
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+  font-size: px(55);
+  line-height: normal;
+  text-align: center;
+  color: $story-text-primary;
+  opacity: 0.92;
+}
+
+/* Scene 18: season closing text */
+.scene-flame-title {
+  @include at-cx(840, 581);
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: px(95);
+  line-height: normal;
+  text-transform: uppercase;
+  text-align: center;
+  color: $story-text-primary;
+}
+
+.scene-flame-sub {
+  @include at-cx(1467, 937);
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+  font-size: px(55);
+  line-height: normal;
+  text-align: center;
+  color: $story-text-primary;
+  opacity: 0.8;
+}
+
+/* Scene 19: final message and actions */
+.scene-final-top {
+  @include at-cx(837, 581);
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+  font-size: px(55);
+  line-height: normal;
+  text-align: center;
+  color: $story-text-primary;
+  opacity: 0.85;
+}
+
+.scene-final-name {
+  @include at-cx(929, 533);
+  /* Names vary by user, so this line sizes to content instead of a fixed box. */
+  width: auto;
+  white-space: nowrap;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: px(140);
+  line-height: 1.1;
+  text-align: center;
+  color: $story-text-strong;
+}
+
+/* Final scene primary CTA */
+.cta-primary {
+  @include at-cx(1530, 948);
+  height: px(147);
+  padding: 0;
+  border-radius: px(86.5);
+  font-size: px(61.24);
+  font-weight: 700;
+  background: $story-cta-bg;
+  color: $story-cta-text;
+  align-items: center;
+}
+
+/* Final scene replay action */
+.cta-replay {
+  @include at-cx(1736, 510);
+  width: auto;
+  height: px(89);
+  padding: 0;
+  border-radius: 0;
+  font-size: px(55);
+  font-weight: 700;
+  background: transparent;
+  color: $story-text-primary;
+  gap: px(16);
+  align-items: center;
+}
+
+.watch_again_icon {
+  width: px(56);
+  height: px(56);
+  margin: 0;
+  filter: brightness(0) invert(1);
+}

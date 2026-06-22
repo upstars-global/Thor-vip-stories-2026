@@ -34,7 +34,7 @@
       <!-- 2: greeting -->
       <div id="stories-segment-2" class="stories-segment" :style="animationPauseStyle">
         <div class="h5 scene-hi">{{ texts.hello }}</div>
-        <div class="h2 scene-name">{{ name }}</div>
+        <div class="h2 scene-name">{{ name }}!</div>
       </div>
 
       <!-- 3: slots / days -->
@@ -93,7 +93,7 @@
 
       <!-- 7: number — top winnings -->
       <div id="stories-segment-7" class="stories-segment" :style="animationPauseStyle">
-        <div class="h5 max_with scene-num-label">{{ texts.top_winnings_label }}</div>
+        <div class="h5 scene-num-label">{{ texts.top_winnings_label }}</div>
         <div class="big-number">{{ topWinnings }}</div>
       </div>
 
@@ -108,7 +108,7 @@
 
       <!-- 9: number — live wins (Figma node 31550:220858) -->
       <div id="stories-segment-9" class="stories-segment" :style="animationPauseStyle">
-        <div class="h5 max_with scene-num-label">{{ texts.live_wins_label }}</div>
+        <div class="h5 scene-num-label">{{ texts.live_wins_label }}</div>
         <div class="big-number">{{ liveWins }}</div>
       </div>
 
@@ -122,7 +122,7 @@
 
       <!-- 11: number — betting wins (Figma node 31550:220871) -->
       <div id="stories-segment-11" class="stories-segment" :style="animationPauseStyle">
-        <div class="h5 max_with scene-num-label">{{ texts.betting_wins_label }}</div>
+        <div class="h5 scene-num-label">{{ texts.betting_wins_label }}</div>
         <div class="big-number">{{ bettingWins }}</div>
       </div>
 
@@ -136,7 +136,7 @@
 
       <!-- 13: number — cashback (Figma node 31550:220884) -->
       <div id="stories-segment-13" class="stories-segment" :style="animationPauseStyle">
-        <div class="h5 max_with scene-num-label">{{ texts.cashback_label }}</div>
+        <div class="h5 scene-num-label">{{ texts.cashback_label }}</div>
         <div class="big-number">{{ cashbackValue }}</div>
       </div>
 
@@ -156,29 +156,35 @@
         <div class="game-frame" v-if="favorite_game_thunbnail">
           <img :src="favorite_game_thunbnail" class="game-thumb" loading="lazy" alt=""/>
         </div>
+        <img
+            v-if="favorite_game_thunbnail"
+            :src="gameFireFrame"
+            class="game-fire-frame"
+            alt=""
+            aria-hidden="true"/>
       </div>
 
       <!-- 16: lock — more rewards (Figma node 31550:220909; lock lives in the video) -->
       <div id="stories-segment-16" class="stories-segment" :style="animationPauseStyle">
-        <div class="h5 max_with scene-lock-text">{{ texts.more_rewards }}</div>
+        <div class="h5 scene-lock-text">{{ texts.more_rewards }}</div>
       </div>
 
       <!-- 17: number — gifts collection (Figma node 31550:220920) -->
       <div id="stories-segment-17" class="stories-segment" :style="animationPauseStyle">
-        <div class="h5 max_with scene-num-label">{{ texts.gifts_collection }}</div>
-        <div class="big-number">{{ giftsCount }}</div>
+        <div class="h5 scene-num-label scene-num-label--gifts">{{ texts.gifts_collection }}</div>
+        <div class="big-number big-number--gifts">{{ giftsCount }}</div>
       </div>
 
       <!-- 18: flame out (Figma node 31550:220935) -->
       <div id="stories-segment-18" class="stories-segment" :style="animationPauseStyle">
         <div class="h2 scene-flame-title">{{ texts.season_ends }}</div>
-        <div class="h5 max_with scene-flame-sub">{{ texts.vip_momentum }}</div>
+        <div class="h5 scene-flame-sub">{{ texts.vip_momentum }}</div>
       </div>
 
       <!-- 19: final (Figma node 31550:220942) -->
       <div id="stories-segment-19" class="stories-segment" :style="animationPauseStyle">
         <div class="h5 scene-final-top">{{ texts.see_you_next }}</div>
-        <div class="h2 scene-final-name">{{ name }}</div>
+        <div class="h2 scene-final-name">{{ name }}!</div>
         <a v-if="showGiftBtn" @click="getGift">
           <div class="end_button cta-primary">{{ texts.end_btn_gift }}</div>
         </a>
@@ -228,5 +234,5 @@
 
 <style scoped lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap');
-@import "styles";
+@import "styles/styles";
 </style>

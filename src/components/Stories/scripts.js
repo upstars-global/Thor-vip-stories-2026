@@ -15,13 +15,14 @@ import story_icon from '@components/Stories/img/avatar.webp'
 import watchAgainIcon from '@components/Stories/img/icons/icon_replay.svg'
 import playButton from '@components/Stories/img/icons/play_button.svg'
 import top_logo from '@components/Stories/img/top_logo.webp'
-import ironCube from '@components/Stories/img/levels/Iron.png'
-import bronzeCube from '@components/Stories/img/levels/Bronze.png'
-import silverCube from '@components/Stories/img/levels/Silver.png'
-import goldCube from '@components/Stories/img/levels/Gold.png'
-import platinumCube from '@components/Stories/img/levels/Plathinum.png'
-import diamondCube from '@components/Stories/img/levels/Diamond.png'
+import ironCube from '@components/Stories/img/levels/iron.png'
+import bronzeCube from '@components/Stories/img/levels/bronze.png'
+import silverCube from '@components/Stories/img/levels/silver.png'
+import goldCube from '@components/Stories/img/levels/gold.png'
+import platinumCube from '@components/Stories/img/levels/platinum.png'
+import diamondCube from '@components/Stories/img/levels/diamond.png'
 import slotFrame from '@components/Stories/img/slot-frame.png'
+import gameFireFrame from '@components/Stories/img/game-fire-frame.png'
 
 // --- VIP level mapping (decision C) ---------------------------------------
 const SHOW_IRON_FOR_REGULAR = true
@@ -56,36 +57,41 @@ const SLOT_SPINS = 3 // full 0-9 cycles travelled before locking
 const slotCellY = k => SLOT_BASE - SLOT_STEP * k
 
 // --- Scene config (single source of truth) --------------------------------
-// vstart = absolute timecode in animatic (provisional, calibrate in "timecodes" phase).
-// dur = display length of the scene's overlay timeline.
-// skip = key into the reactive `skip` object (undefined => never skipped).
+// vstart = absolute timecode in animatic (seconds). dur = display length of the
+// scene's overlay timeline. skip = key into the reactive `skip` object.
 // Order mirrors the redesigned Figma deck (19 scenes, file cqRRGIY5o8LB7rgm4WV5E2).
-// vstart/dur calibrated to animatic.webm (length 117.0s, 2026-06-19). The animatic
-// holds 17 visual cuts at ~6s each; two long cuts are shared by two scenes:
-//   - the 12s "sparks" cut (77.966-89.966) covers scenes 14 (what game) + 15 (game)
-//   - the 15s final cut (101.966-117.0) covers scenes 18 (flameOut) + 19 (final)
-// vstart values are contiguous so the background plays without jumps; recalibrate
-// once the final motion video lands (durations may shift slightly).
+//
+// FRAME-ACCURATE TIMELINE (motion-design final, 25fps, 117.0s, hard cuts on whole
+// seconds). 17 visual cuts on a 6s grid; two long cuts are shared by two scenes:
+//   - "sparks" cut 78-90 (12s) covers scene 14 (what game) + 15 (game)
+//   - final cut 102-117 (15s) covers scene 18 (flameOut) + 19 (final)
+// Object cuts land on: chips=42 (scene 8), soccer=54 (scene 10), dollars=66
+// (scene 12), lock=90 (scene 16), gifts=96 (scene 17); the 4 number scenes
+// (7/9/11/13 @ 36/48/60/72) ride the repeating spotlight+suits background.
+//
+// ⚠️ The animatic.webm currently committed is an OUTDATED 127.83s render whose
+// object cuts are shifted +6..+12s, so backgrounds land on the wrong scenes.
+// Replace it with the final 117.0s render and this calibration is frame-accurate.
 const SCENES = [
-  { id: 1, type: 'intro', vstart: 0, dur: 5.966 }, // 220950 VIP logo
-  { id: 2, type: 'greeting', vstart: 5.966, dur: 6 }, // 220681 Hi, {name}!
-  { id: 3, type: 'slots', vstart: 11.966, dur: 6, skip: 'slots' }, // 220695 day {days}
-  { id: 4, type: 'fall', vstart: 17.966, dur: 6 }, // 220747 journey
-  { id: 5, type: 'level', vstart: 23.966, dur: 6, skip: 'level' }, // 220801 level cube
-  { id: 6, type: 'fall', vstart: 29.966, dur: 6 }, // 220817 moments
-  { id: 7, type: 'number', vstart: 35.966, dur: 6, skip: 'top' }, // 220845 top winnings
-  { id: 8, type: 'fall', vstart: 41.966, dur: 6 }, // 220760 live tables
-  { id: 9, type: 'number', vstart: 47.966, dur: 6, skip: 'live' }, // 220858 live wins
-  { id: 10, type: 'netball', vstart: 53.966, dur: 6 }, // 220779 you trusted
-  { id: 11, type: 'number', vstart: 59.966, dur: 6, skip: 'betting' }, // 220871 betting wins
-  { id: 12, type: 'fall', vstart: 65.966, dur: 6 }, // 220897 experiments
-  { id: 13, type: 'number', vstart: 71.966, dur: 6, skip: 'cashback' }, // 220884 cashback
-  { id: 14, type: 'fall', vstart: 77.966, dur: 6 }, // 220994 what game
-  { id: 15, type: 'game', vstart: 83.966, dur: 6, skip: 'game' }, // 220973 game of season
-  { id: 16, type: 'lock', vstart: 89.966, dur: 6 }, // 220909 more rewards
-  { id: 17, type: 'number', vstart: 95.966, dur: 6, skip: 'gifts' }, // 220920 gifts (244)
-  { id: 18, type: 'flameOut', vstart: 101.966, dur: 6 }, // 220935 season ends
-  { id: 19, type: 'final', vstart: 107.966, dur: 9.034 }, // 220942 final / CTA
+  { id: 1, type: 'intro', vstart: 0, dur: 6 }, // 220950 VIP logo
+  { id: 2, type: 'greeting', vstart: 6, dur: 6 }, // 220681 Hi, {name}!
+  { id: 3, type: 'slots', vstart: 12, dur: 6, skip: 'slots' }, // 220695 day {days}
+  { id: 4, type: 'fall', vstart: 18, dur: 6 }, // 220747 journey (road)
+  { id: 5, type: 'level', vstart: 24, dur: 6, skip: 'level' }, // 220801 level cube
+  { id: 6, type: 'fall', vstart: 30, dur: 6 }, // 220817 moments (gift boxes)
+  { id: 7, type: 'number', vstart: 36, dur: 6, skip: 'top' }, // 220845 top winnings
+  { id: 8, type: 'fall', vstart: 42, dur: 6 }, // 220760 live tables (chips)
+  { id: 9, type: 'number', vstart: 48, dur: 6, skip: 'live' }, // 220858 live wins
+  { id: 10, type: 'netball', vstart: 54, dur: 6 }, // 220779 you trusted (soccer)
+  { id: 11, type: 'number', vstart: 60, dur: 6, skip: 'betting' }, // 220871 betting wins
+  { id: 12, type: 'fall', vstart: 66, dur: 6 }, // 220897 experiments (dollars)
+  { id: 13, type: 'number', vstart: 72, dur: 6, skip: 'cashback' }, // 220884 cashback
+  { id: 14, type: 'fall', vstart: 78, dur: 6 }, // 220994 what game (sparks 78-90)
+  { id: 15, type: 'game', vstart: 84, dur: 6, skip: 'game' }, // 220973 game of season
+  { id: 16, type: 'lock', vstart: 90, dur: 6 }, // 220909 more rewards (lock)
+  { id: 17, type: 'number', vstart: 96, dur: 6, skip: 'gifts' }, // 220920 gifts (244)
+  { id: 18, type: 'flameOut', vstart: 102, dur: 6 }, // 220935 season ends (final 102-117)
+  { id: 19, type: 'final', vstart: 108, dur: 9 }, // 220942 final / CTA
 ]
 
 export default {
@@ -414,10 +420,10 @@ export default {
           stl.to(root, { duration: 0.2 })
           break
         case 'greeting':
-          stl.from(`${root} .scene-hi`, { opacity: 0, y: '2vh', duration: 0.6 })
+          stl.from(`${root} .scene-hi`, { opacity: 0, '--ey': 2, duration: 0.6 })
           stl.from(
             `${root} .scene-name`,
-            { opacity: 0, y: '4vh', scale: 0.85, duration: 0.7, ease: 'back.out(1.6)' },
+            { opacity: 0, '--ey': 4, '--es': 0.85, duration: 0.7, ease: 'back.out(1.6)' },
             '-=0.2'
           )
           break
@@ -573,65 +579,66 @@ export default {
           )
           break
         case 'level':
-          // cube descends from above (smaller) and grows to full size
+          // cube descends from above (smaller) and grows to full size.
+          // Motion rides --ey/--es so CSS keeps the translateX(-50%) centring.
           stl.from(`${root} .cube-img`, {
             opacity: 0,
-            y: '-15dvh',
-            scale: 0.65,
+            '--ey': -15,
+            '--es': 0.65,
             duration: 1.0,
             ease: 'power3.out',
           })
           // text lines appear from below sequentially
           stl.from(
             `${root} .scene-cube-top`,
-            { opacity: 0, y: '4dvh', duration: 0.45, ease: 'power2.out' },
+            { opacity: 0, '--ey': 4, duration: 0.45, ease: 'power2.out' },
             '-=0.15'
           )
           stl.from(
             `${root} .scene-cube-level`,
-            { opacity: 0, y: '4dvh', duration: 0.45, ease: 'power2.out' },
+            { opacity: 0, '--ey': 4, duration: 0.45, ease: 'power2.out' },
             '-=0.15'
           )
           stl.from(
             `${root} .scene-cube-bottom`,
-            { opacity: 0, y: '4dvh', duration: 0.45, ease: 'power2.out' },
+            { opacity: 0, '--ey': 4, duration: 0.45, ease: 'power2.out' },
             '-=0.15'
           )
           break
         case 'number':
-          stl.from(`${root} .scene-num-label`, { opacity: 0, y: '4vh', duration: 0.5 })
+          stl.from(`${root} .scene-num-label`, { opacity: 0, '--ey': 4, duration: 0.5 })
           stl.from(
             `${root} .big-number`,
-            { opacity: 0, y: '9vh', scale: 0.8, duration: 0.7, ease: 'back.out(1.5)' },
+            { opacity: 0, '--ey': 9, '--es': 0.8, duration: 0.7, ease: 'back.out(1.5)' },
             '-=0.1'
           )
           break
         case 'game':
-          stl.from(`${root} .scene-game-label`, { opacity: 0, y: '-3vh', duration: 0.4 })
-          stl.from(`${root} .scene-game-name`, { opacity: 0, y: '-3vh', duration: 0.5 }, '-=0.1')
+          stl.from(`${root} .scene-game-label`, { opacity: 0, '--ey': -3, duration: 0.4 })
+          stl.from(`${root} .scene-game-name`, { opacity: 0, '--ey': -3, duration: 0.5 }, '-=0.1')
           stl.from(
-            `${root} .game-frame`,
-            { opacity: 0, scale: 0.7, duration: 0.7, ease: 'back.out(1.5)' },
+            `${root} .game-frame, ${root} .game-fire-frame`,
+            { opacity: 0, '--es': 0.7, duration: 0.7, ease: 'back.out(1.5)' },
             '-=0.1'
           )
           break
         case 'lock':
-          stl.from(`${root} .scene-lock-text`, { opacity: 0, y: '4vh', duration: 0.7 })
+          stl.from(`${root} .scene-lock-text`, { opacity: 0, '--ey': 4, duration: 0.7 })
           break
         case 'flameOut':
-          stl.from(`${root} .scene-flame-title`, { opacity: 0, y: '3vh', duration: 0.6 })
-          stl.from(`${root} .scene-flame-sub`, { opacity: 0, y: '3vh', duration: 0.5 }, '-=0.2')
+          stl.from(`${root} .scene-flame-title`, { opacity: 0, '--ey': 3, duration: 0.6 })
+          stl.from(`${root} .scene-flame-sub`, { opacity: 0, '--ey': 3, duration: 0.5 }, '-=0.2')
           break
         case 'final':
-          stl.from(`${root} .scene-final-top`, { opacity: 0, y: '3vh', duration: 0.5 })
+          stl.from(`${root} .scene-final-top`, { opacity: 0, '--ey': 3, duration: 0.5 })
           stl.from(
             `${root} .scene-final-name`,
-            { opacity: 0, y: '4vh', scale: 0.85, duration: 0.6, ease: 'back.out(1.5)' },
+            { opacity: 0, '--ey': 4, '--es': 0.85, duration: 0.6, ease: 'back.out(1.5)' },
             '-=0.2'
           )
           stl.from(
             `${root} .end_button`,
-            { opacity: 0, y: '3vh', duration: 0.5, stagger: 0.15 },
+            { opacity: 0, '--ey': 3, duration: 0.5, stagger: 0.15 },
             '-=0.1'
           )
           break
@@ -857,6 +864,7 @@ export default {
       top_logo,
       watchAgainIcon,
       slotFrame,
+      gameFireFrame,
       // actions
       togglePlayState,
       handleEvent,

@@ -22,7 +22,7 @@ export default {
 
 <style scoped lang="scss">
 
-@import "/src/components/Stories/_mixins.scss";
+@import "/src/components/Stories/styles/_mixins.scss";
 
 .control-area {
   position: absolute;

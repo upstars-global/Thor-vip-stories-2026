@@ -28,8 +28,4 @@ _input/
 
 # Raw incoming assets (heavy / temporary)
 animatic/
-levels/
 
-# Temporary background video served by the app (animatic until final video)
-/public/video/*.webm
-/public/video/*.mp4
