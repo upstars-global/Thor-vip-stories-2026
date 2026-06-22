@@ -14,84 +14,11 @@ import pt from '@components/Stories/localization/pt.json'
 import story_icon from '@components/Stories/img/avatar.webp'
 import watchAgainIcon from '@components/Stories/img/icons/icon_replay.svg'
 import playButton from '@components/Stories/img/icons/play_button.svg'
-import ironCube from '@components/Stories/img/levels/iron.png'
-import bronzeCube from '@components/Stories/img/levels/bronze.png'
-import silverCube from '@components/Stories/img/levels/silver.png'
-import goldCube from '@components/Stories/img/levels/gold.png'
-import platinumCube from '@components/Stories/img/levels/platinum.png'
-import diamondCube from '@components/Stories/img/levels/diamond.png'
+import { SHOW_IRON_FOR_REGULAR, LEVEL_CUBES, LEVEL_WORD_KEY, resolveLevel } from './config/levelConfig.js'
+import { SLOT_STEP, SLOT_BASE, SLOT_COPIES, SLOT_REST_COPY, SLOT_SPINS, slotCellY } from './config/slotGeometry.js'
+import { SCENES } from './config/scenes.js'
 import slotFrame from '@components/Stories/img/slot-frame.png'
 import gameFireFrame from '@components/Stories/img/game-fire-frame.png'
-
-// --- VIP level mapping (decision C) ---------------------------------------
-const SHOW_IRON_FOR_REGULAR = true
-const LEVEL_CUBES = {
-  IRON: ironCube,
-  BRONZE: bronzeCube,
-  SILVER: silverCube,
-  GOLD: goldCube,
-  PLATINUM: platinumCube,
-  DIAMOND: diamondCube,
-}
-const LEVEL_WORD_KEY = {
-  IRON: 'vip_level_regular',
-  REGULAR: 'vip_level_regular',
-  BRONZE: 'vip_level_bronze',
-  SILVER: 'vip_level_silver',
-  GOLD: 'vip_level_gold',
-  PLATINUM: 'vip_level_platinum',
-  DIAMOND: 'vip_level_diamond',
-}
-
-// --- Slot reel geometry (mirrors Figma node 31550:220705) -----------------
-// Values are RAW design px (Figma 1080x1920). The CSS variable --reel-y is a
-// unitless design-px offset; CSS multiplies it by --u (the cover-canvas scale),
-// so geometry stays on the single px() coordinate system and survives resize.
-const SLOT_STEP = 183.07 // digit cell (160.973 * 1.1) + 6px gap, design px
-const SLOT_BASE = 67.965 // translateY that centres reel cell 0, design px
-const SLOT_COPIES = 8 // repeated 0-9 blocks stacked in the reel
-const SLOT_REST_COPY = 6 // copy index whose digit rests in the window
-const SLOT_SPINS = 3 // full 0-9 cycles travelled before locking
-// translateY (design px, *--u in CSS) that centres reel cell `k` in the window
-const slotCellY = k => SLOT_BASE - SLOT_STEP * k
-
-// --- Scene config (single source of truth) --------------------------------
-// vstart = absolute timecode in animatic (seconds). dur = display length of the
-// scene's overlay timeline. skip = key into the reactive `skip` object.
-// Order mirrors the redesigned Figma deck (19 scenes, file cqRRGIY5o8LB7rgm4WV5E2).
-//
-// FRAME-ACCURATE TIMELINE (motion-design final, 25fps, 117.0s, hard cuts on whole
-// seconds). 17 visual cuts on a 6s grid; two long cuts are shared by two scenes:
-//   - "sparks" cut 78-90 (12s) covers scene 14 (what game) + 15 (game)
-//   - final cut 102-117 (15s) covers scene 18 (flameOut) + 19 (final)
-// Object cuts land on: chips=42 (scene 8), soccer=54 (scene 10), dollars=66
-// (scene 12), lock=90 (scene 16), gifts=96 (scene 17); the 4 number scenes
-// (7/9/11/13 @ 36/48/60/72) ride the repeating spotlight+suits background.
-//
-// ⚠️ The animatic.webm currently committed is an OUTDATED 127.83s render whose
-// object cuts are shifted +6..+12s, so backgrounds land on the wrong scenes.
-// Replace it with the final 117.0s render and this calibration is frame-accurate.
-const SCENES = [
-  { id: 1, type: 'intro', vstart: 0, dur: 6 }, // 220950 VIP logo
-  { id: 2, type: 'greeting', vstart: 6, dur: 6 }, // 220681 Hi, {name}!
-  { id: 3, type: 'slots', vstart: 12, dur: 6, skip: 'slots' }, // 220695 day {days}
-  { id: 4, type: 'fall', vstart: 18, dur: 6 }, // 220747 journey (road)
-  { id: 5, type: 'level', vstart: 24, dur: 6, skip: 'level' }, // 220801 level cube
-  { id: 6, type: 'fall', vstart: 30, dur: 6 }, // 220817 moments (gift boxes)
-  { id: 7, type: 'number', vstart: 36, dur: 6, skip: 'top' }, // 220845 top winnings
-  { id: 8, type: 'fall', vstart: 42, dur: 6 }, // 220760 live tables (chips)
-  { id: 9, type: 'number', vstart: 48, dur: 6, skip: 'live' }, // 220858 live wins
-  { id: 10, type: 'netball', vstart: 54, dur: 6 }, // 220779 you trusted (soccer)
-  { id: 11, type: 'number', vstart: 60, dur: 6, skip: 'betting' }, // 220871 betting wins
-  { id: 12, type: 'fall', vstart: 66, dur: 6 }, // 220897 experiments (dollars)
-  { id: 13, type: 'number', vstart: 72, dur: 6, skip: 'cashback' }, // 220884 cashback
-  { id: 14, type: 'fall', vstart: 78, dur: 6 }, // 220994 what game (sparks 78-90)
-  { id: 15, type: 'game', vstart: 84, dur: 6, skip: 'game' }, // 220973 game of season
-  { id: 16, type: 'lock', vstart: 90, dur: 6 }, // 220909 more rewards (lock)
-  { id: 17, type: 'number', vstart: 96, dur: 6, skip: 'gifts' }, // 220920 gifts (244)
-  { id: 18, type: 'flameOut', vstart: 102, dur: 6 }, // 220935 season ends (final 102-117)
-  { id: 19, type: 'final', vstart: 108, dur: 9 }, // 220942 final / CTA
-]
 
 export default {
   name: 'Bonuses',
@@ -689,19 +616,6 @@ export default {
       const cleaned = String(raw).replace(',', '.').replace(/\s/g, '')
       const n = Math.round(Number(cleaned))
       return isNaN(n) ? 0 : n
-    }
-
-    const resolveLevel = raw => {
-      const lv = (raw || '').trim().toUpperCase()
-      if (!lv) return { skip: true }
-      if (lv === 'REGULAR') {
-        return SHOW_IRON_FOR_REGULAR
-          ? { skip: false, cube: LEVEL_CUBES.IRON, key: 'REGULAR' }
-          : { skip: true }
-      }
-      if (LEVEL_CUBES[lv]) return { skip: false, cube: LEVEL_CUBES[lv], key: lv }
-      console.warn('[stories] unknown level value:', raw)
-      return { skip: true }
     }
 
     const parseParams = () => {
