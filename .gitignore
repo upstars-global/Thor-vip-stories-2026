@@ -26,6 +26,3 @@ dist-ssr
 # Input data (task, mockup links, marketing docs) — local only
 _input/
 
-# Raw incoming assets (heavy / temporary)
-animatic/
-
