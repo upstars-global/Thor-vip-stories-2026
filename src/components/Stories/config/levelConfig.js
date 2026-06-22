@@ -1,9 +1,9 @@
-import ironCube from '@components/Stories/img/levels/iron.png'
-import bronzeCube from '@components/Stories/img/levels/bronze.png'
-import silverCube from '@components/Stories/img/levels/silver.png'
-import goldCube from '@components/Stories/img/levels/gold.png'
-import platinumCube from '@components/Stories/img/levels/platinum.png'
-import diamondCube from '@components/Stories/img/levels/diamond.png'
+import ironCube from '@components/Stories/img/levels/iron.webp'
+import bronzeCube from '@components/Stories/img/levels/bronze.webp'
+import silverCube from '@components/Stories/img/levels/silver.webp'
+import goldCube from '@components/Stories/img/levels/gold.webp'
+import platinumCube from '@components/Stories/img/levels/platinum.webp'
+import diamondCube from '@components/Stories/img/levels/diamond.webp'
 
 // --- VIP level mapping (decision C) ---------------------------------------
 export const SHOW_IRON_FOR_REGULAR = true

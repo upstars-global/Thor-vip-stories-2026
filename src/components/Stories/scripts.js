@@ -17,8 +17,8 @@ import playButton from '@components/Stories/img/icons/play_button.svg'
 import { SHOW_IRON_FOR_REGULAR, LEVEL_CUBES, LEVEL_WORD_KEY, resolveLevel } from './config/levelConfig.js'
 import { SLOT_STEP, SLOT_BASE, SLOT_COPIES, SLOT_REST_COPY, SLOT_SPINS, slotCellY } from './config/slotGeometry.js'
 import { SCENES } from './config/scenes.js'
-import slotFrame from '@components/Stories/img/slot-frame.png'
-import gameFireFrame from '@components/Stories/img/game-fire-frame.png'
+import slotFrame from '@components/Stories/img/slot-frame.webp'
+import gameFireFrame from '@components/Stories/img/game-fire-frame.webp'
 
 export default {
   name: 'Bonuses',
@@ -357,7 +357,11 @@ export default {
           const cards = gsap.utils.toArray(`${root} .slot-card`)
           const digits = daysDigits.value
           const restCell = d => SLOT_REST_COPY * 10 + d // resting reel cell
-          const SPIN_CYCLE = SLOT_STEP * 10 * SLOT_SPINS // design px travelled
+          // Reel starts on a digit-0 cell SLOT_SPINS full cycles above the rest
+          // cell, so the window shows 0 (not the final digit) on appearance and
+          // counts up through SLOT_SPINS cycles before locking onto the day digit.
+          const startCell = (SLOT_REST_COPY - SLOT_SPINS) * 10 // digit 0
+          const startY = slotCellY(startCell)
           // Each card locks a bit later so the digits fix one by one (1, then 4, then 3).
           const spinDur = i => 1.0 + i * 0.45
 
@@ -385,7 +389,6 @@ export default {
             const dur = spinDur(i)
             const lockAt = 'spin+=' + dur
             lastLock = Math.max(lastLock, dur)
-            const startY = slotCellY(restCell(d)) + SPIN_CYCLE
             const restY = slotCellY(restCell(d))
 
             stl.fromTo(
