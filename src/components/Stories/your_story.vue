@@ -77,7 +77,7 @@
 
       <!-- 5: level cube -->
       <div id="stories-segment-5" class="stories-segment" :style="animationPauseStyle">
-        <img v-if="cubeSrc" :src="cubeSrc" class="cube-img" loading="lazy" alt="level"/>
+        <img v-if="cubeSrc" :src="cubeSrc" class="cube-img" alt="level"/>
         <div class="scene-cube-top">{{ texts.this_season_reached }}</div>
         <div class="scene-cube-level">{{ levelName }} {{ texts.level_suffix }}</div>
         <div class="scene-cube-bottom">{{ texts.in_vip_club }}</div>
@@ -154,7 +154,7 @@
         <div class="h5 scene-game-label">{{ texts.game_of_season }}</div>
         <div class="h2 scene-game-name">{{ favorite_game_name }}</div>
         <div class="game-frame" v-if="favorite_game_thunbnail">
-          <img :src="favorite_game_thunbnail" class="game-thumb" loading="lazy" alt=""/>
+          <img :src="favorite_game_thunbnail" class="game-thumb" alt=""/>
         </div>
         <img
             v-if="favorite_game_thunbnail"
@@ -189,7 +189,7 @@
           <div class="end_button cta-primary">{{ texts.end_btn_gift }}</div>
         </a>
         <div class="end_button cta-replay" @click="watchAgain()">
-          <img :src="watchAgainIcon" class="watch_again_icon" loading="lazy" alt="">
+          <img :src="watchAgainIcon" class="watch_again_icon" alt="">
           {{ texts.end_btn_replay }}
         </div>
       </div>
