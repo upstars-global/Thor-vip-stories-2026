@@ -14,7 +14,6 @@ import pt from '@components/Stories/localization/pt.json'
 import story_icon from '@components/Stories/img/avatar.webp'
 import watchAgainIcon from '@components/Stories/img/icons/icon_replay.svg'
 import playButton from '@components/Stories/img/icons/play_button.svg'
-import top_logo from '@components/Stories/img/top_logo.webp'
 import ironCube from '@components/Stories/img/levels/iron.png'
 import bronzeCube from '@components/Stories/img/levels/bronze.png'
 import silverCube from '@components/Stories/img/levels/silver.png'
@@ -861,7 +860,6 @@ export default {
       showGiftBtn,
       // assets
       story_icon,
-      top_logo,
       watchAgainIcon,
       slotFrame,
       gameFireFrame,
