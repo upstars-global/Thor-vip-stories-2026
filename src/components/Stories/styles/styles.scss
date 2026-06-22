@@ -757,6 +757,22 @@ a {
   text-align: center;
   color: $story-text-primary;
 }
+/* Scene 15: once the flame border has ignited (GSAP entrance) it keeps "burning"
+   with a subtle brightness/saturation flicker. Only `filter` is animated here so
+   it never fights GSAP, which drives opacity + --es. */
+@keyframes game-fire-flicker {
+  0%,
+  100% {
+    filter: brightness(1) saturate(1);
+  }
+  30% {
+    filter: brightness(1.16) saturate(1.12);
+  }
+  65% {
+    filter: brightness(0.95) saturate(1.04);
+  }
+}
+
 /* The PNG contains the neon/flame border and a transparent inner window; the
    thumbnail is positioned separately underneath that window. */
 .game-fire-frame {
@@ -768,6 +784,9 @@ a {
   height: content-px(1327);
   pointer-events: none;
   z-index: 2;
+  animation: game-fire-flicker 1.8s ease-in-out infinite;
+  // inherits the segment's running/paused state (set inline via animationPauseStyle)
+  animation-play-state: inherit;
 }
 
 /* Slightly oversized so the game art sits under the PNG border without gaps. */

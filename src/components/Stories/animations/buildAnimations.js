@@ -227,15 +227,28 @@ export function createAnimations(ctx) {
           '-=0.1'
         )
         break
-      case 'game':
+      case 'game': {
+        // text falls from above: label first, then the game name
         stl.from(`${root} .scene-game-label`, { opacity: 0, '--ey': -3, duration: 0.4 })
         stl.from(`${root} .scene-game-name`, { opacity: 0, '--ey': -3, duration: 0.5 }, '-=0.1')
-        stl.from(
-          `${root} .game-frame, ${root} .game-fire-frame`,
-          { opacity: 0, '--es': 0.7, duration: 0.7, ease: 'back.out(1.5)' },
-          '-=0.1'
+        // icon = thumbnail + flame frame as ONE unit: appears from the centre,
+        // pulsing (scale-in pop + a single heartbeat). The flame then keeps
+        // burning via the CSS filter flicker on .game-fire-frame.
+        const gameIcon = `${root} .game-frame, ${root} .game-fire-frame`
+        stl.addLabel('gpop')
+        stl.fromTo(
+          gameIcon,
+          { opacity: 0, '--es': 0.5 },
+          { opacity: 1, '--es': 1, duration: 0.55, ease: 'back.out(2)' },
+          'gpop'
+        )
+        stl.to(
+          gameIcon,
+          { '--es': 1.05, duration: 0.18, yoyo: true, repeat: 1, ease: 'sine.inOut' },
+          'gpop+=0.55'
         )
         break
+      }
       case 'lock':
         stl.from(`${root} .scene-lock-text`, { opacity: 0, '--ey': 4, duration: 0.7 })
         break
