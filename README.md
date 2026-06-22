@@ -36,7 +36,7 @@
   - [src/components/Stories/your_story.vue](src/components/Stories/your_story.vue) — HTML-шаблон оверлеїв + підключення стилів. Логіка винесена окремо: `<script src="./scripts.js">`.
   - [src/components/Stories/scripts.js](src/components/Stories/scripts.js) — вся логіка (парсинг URL, побудова таймлайнів, керування плеєром, події в `parent`).
 - [index.html](index.html) містить інлайновий прелоадер (SVG) і CSS-змінні теми; прелоадер ховається на `window.onload`.
-- [vite.config.js](vite.config.js): `base: "./"` (відносні шляхи — критично для роботи з піддиректорії CDN) та аліаси (`@components`, `@src`, тощо).
+- [vite.config.js](vite.config.js): `base: "./"` (відносні шляхи — критично для роботи з піддиректорії CDN) та alias `@components`.
 - Допоміжні UI-компоненти у `src/components/Stories/UI/`:
   - `storiesTopBar.vue` — сегментний прогрес-бар.
   - `mobileControlArea.vue` — таб-зони керування на мобільному.
