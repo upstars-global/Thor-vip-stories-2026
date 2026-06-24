@@ -21,6 +21,11 @@ export function createAnimations(ctx) {
 
   const SEL = id => `#stories-segment-${id}`
 
+  // Every scene exits with a zoom-into-camera move: the whole 1080x1920 overlay
+  // canvas scales up while fading out (matches the motion-designer animatic). The
+  // final CTA scene is excluded so its buttons stay put and stay clickable.
+  const ZOOM_OUT_SCALE = 4.5 // ~450% peak, per the designer's AE Null
+
   const buildEntrance = (stl, scene) => {
     const root = SEL(scene.id)
     stl.set(root, { display: 'flex' })
@@ -252,10 +257,32 @@ export function createAnimations(ctx) {
       case 'lock':
         stl.from(`${root} .scene-lock-text`, { opacity: 0, '--ey': 4, duration: 0.7 })
         break
-      case 'flameOut':
-        stl.from(`${root} .scene-flame-title`, { opacity: 0, '--ey': 3, duration: 0.6 })
+      case 'flameOut': {
+        // Title appears with a neon glitch/flicker on opacity (designer ref):
+        // the position settles in parallel, the sub line fades up afterwards.
+        const flameTitle = `${root} .scene-flame-title`
+        stl.addLabel('flame')
+        stl.fromTo(
+          flameTitle,
+          { '--ey': 3 },
+          { '--ey': 0, duration: 0.7, ease: 'power2.out' },
+          'flame'
+        )
+        stl.set(flameTitle, { opacity: 0 }, 'flame')
+        stl.to(
+          flameTitle,
+          {
+            duration: 0.7,
+            keyframes: {
+              opacity: [0, 0.8, 0.12, 1, 0.3, 0.85, 0.55, 1],
+              easeEach: 'power1.inOut',
+            },
+          },
+          'flame'
+        )
         stl.from(`${root} .scene-flame-sub`, { opacity: 0, '--ey': 3, duration: 0.5 }, '-=0.2')
         break
+      }
       case 'final':
         stl.from(`${root} .scene-final-top`, { opacity: 0, '--ey': 3, duration: 0.5 })
         stl.from(
@@ -300,12 +327,26 @@ export function createAnimations(ctx) {
 
     buildEntrance(stl, scene)
 
-    const exitDur = 0.5
+    // Short, snappy exit: the overlay holds static until the last ~0.3s, then
+    // the zoom-into-camera + fade lands exactly on the background cut (scene.dur).
+    const exitDur = 0.3
     const entranceEnd = stl.duration()
     const holdSpan = Math.max(0.1, scene.dur - exitDur - entranceEnd)
     stl.to(SEL(scene.id), { duration: holdSpan }) // hold
-    stl.to(SEL(scene.id), { opacity: 0, duration: exitDur, ease: 'power1.in' })
-    stl.set(SEL(scene.id), { display: 'none', opacity: 1 })
+
+    // Exit: zoom-into-camera. The whole segment canvas scales out (~450%) while
+    // fading. Scale rides --seg-scale so the centring translate(-50%,-50%) stays
+    // a live % and is never frozen by GSAP. The final CTA scene keeps its scale.
+    stl.addLabel('exit')
+    if (scene.type !== 'final') {
+      stl.to(
+        SEL(scene.id),
+        { '--seg-scale': ZOOM_OUT_SCALE, duration: exitDur, ease: 'power2.in' },
+        'exit'
+      )
+    }
+    stl.to(SEL(scene.id), { opacity: 0, duration: exitDur, ease: 'power1.in' }, 'exit')
+    stl.set(SEL(scene.id), { display: 'none', opacity: 1, '--seg-scale': 1 })
 
     segDurations[scene.id] = stl.duration()
     return stl

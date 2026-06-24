@@ -1,4 +1,4 @@
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import StoriesTopBar from '@components/Stories/UI/storiesTopBar.vue'
 import mobileControlArea from '@components/Stories/UI/mobileControlArea.vue'
 import desktopControlButton from '@components/Stories/UI/desktopControlButton.vue'
@@ -152,6 +152,20 @@ export default {
       return arr
     })
 
+    // Active segments enriched with their video timecode (vstart) and tl start,
+    // used by the continuous video->timeline sync in useStoryPlayback.
+    const segments = computed(() =>
+      builtIds.value.map((id, i) => {
+        const sc = SCENES.find(s => s.id === id)
+        return {
+          id,
+          vstart: sc ? sc.vstart : 0,
+          dur: segDurations[id] || (sc ? sc.dur : 0),
+          start: segmentStartTimes.value[i] || 0,
+        }
+      })
+    )
+
     // === Layers ==============================================================
     const { fitCards, fitAllCards, initViewport } = useViewportFit()
 
@@ -163,6 +177,8 @@ export default {
       handleEvent,
       handleEventEnd,
       jumpToSegment,
+      startPlayback,
+      stopSync,
     } = useStoryPlayback({
       tl,
       videoPlayer,
@@ -174,6 +190,7 @@ export default {
       currentTime,
       numberOfSegments,
       segmentStartTimes,
+      segments,
       showPlayButton,
       isVideoPlaying,
     })
@@ -231,8 +248,9 @@ export default {
         numberOfSegments.value = built.length
         duration.value = tl.duration()
 
-        // master timeline was created empty before mount; start it now from 0
-        tl.play(0)
+        // master timeline was created empty before mount; start video first and
+        // gate tl.play(0) on the first presented frame, then keep them in sync.
+        startPlayback()
 
         installStoryDebugHook({
           tl,
@@ -243,6 +261,10 @@ export default {
           fitAllCards,
         })
       })
+    })
+
+    onUnmounted(() => {
+      stopSync()
     })
 
     return {

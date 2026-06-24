@@ -55,13 +55,15 @@
 .stories-segment {
   z-index: 1;
   /* Each segment is the scaled 1080x1920 design canvas. GSAP toggles display
-     and opacity on the root, so this centering transform stays stable. */
+     and opacity on the root; the zoom-into-camera exit rides --seg-scale, so the
+     centering translate(-50%, -50%) stays a live % and is never frozen by GSAP. */
+  --seg-scale: 1;
   position: absolute;
   left: 50%;
   top: 50%;
   width: calc(1080 * var(--u));
   height: calc(1920 * var(--u));
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(var(--seg-scale));
   flex-direction: column;
   justify-content: center;
   transform-origin: center;
@@ -714,6 +716,9 @@ a {
   color: $story-text-strong;
   text-align: center;
   white-space: nowrap;
+  -webkit-text-stroke-width: 3px;
+  -webkit-text-stroke-color: #0040FF;
+  paint-order: stroke fill;
 }
 
 /* Scene 17: gifts collection has its own label and number placement. */
