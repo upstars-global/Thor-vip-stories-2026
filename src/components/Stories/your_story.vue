@@ -16,6 +16,7 @@
             muted=""
             playsinline=""
             @timeupdate="updateTime"
+            @ended="handleVideoEnded"
         >
           <source :src="videoWebm" type="video/webm">
           <source :src="videoMp4" type="video/mp4">

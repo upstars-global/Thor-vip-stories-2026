@@ -7,17 +7,7 @@ import { SLOT_REST_COPY, SLOT_SPINS, slotCellY } from '../config/slotGeometry.js
 // --journey-y/--gift-y/--fall-y) are preserved exactly. Shared runtime state is
 // injected from the composition root.
 export function createAnimations(ctx) {
-  const {
-    tl,
-    videoPlayer,
-    defaultDuration,
-    daysDigits,
-    fitCards,
-    checkVideoPlayback,
-    segTimes,
-    segDurations,
-    showPlayButton,
-  } = ctx
+  const { defaultDuration, daysDigits, fitCards, segTimes, segDurations } = ctx
 
   const SEL = id => `#stories-segment-${id}`
 
@@ -309,26 +299,13 @@ export function createAnimations(ctx) {
       },
     })
 
-    stl.add(() => {
-      if (!videoPlayer.value) return
-      if (Math.abs(videoPlayer.value.currentTime - scene.vstart) > 0.25) {
-        videoPlayer.value.currentTime = scene.vstart
-      }
-      if (videoPlayer.value.paused) {
-        videoPlayer.value
-          .play()
-          .then(() => setTimeout(checkVideoPlayback, 200))
-          .catch(() => {
-            showPlayButton.value = true
-            tl.pause()
-          })
-      }
-    })
-
     buildEntrance(stl, scene)
 
-    // Short, snappy exit: non-final overlays hold static until the last ~0.3s,
-    // then the zoom-into-camera + fade lands exactly on the background cut.
+    // The segment is placed on the master timeline at its absolute video time
+    // (tl.add(stl, scene.vstart) in scripts.js), so the master clock == video
+    // clock and `dur` only controls this overlay's own length. When `dur` is
+    // longer than the scene's video window, the exit deliberately overlaps the
+    // next scene's entrance (the zoom-into-camera "rides over" the cut).
     // The final CTA must stay visible and clickable after the video ends.
     const isFinalScene = scene.type === 'final'
     const exitDur = isFinalScene ? 0 : 0.3
@@ -336,22 +313,24 @@ export function createAnimations(ctx) {
     const holdSpan = Math.max(0.1, scene.dur - exitDur - entranceEnd)
     stl.to(SEL(scene.id), { duration: holdSpan }) // hold
 
-    // Exit: zoom-into-camera. The whole segment canvas scales out (~450%) while
-    // fading. Scale rides --seg-scale so the centring translate(-50%,-50%) stays
-    // a live % and is never frozen by GSAP. The final CTA scene keeps its scale.
     if (isFinalScene) {
       segDurations[scene.id] = stl.duration()
       return stl
     }
 
+    // Exit: zoom-into-camera. The whole segment canvas scales out (~450%) while
+    // fading. Scale rides --seg-scale so the centring translate(-50%,-50%) stays
+    // a live % and is never frozen by GSAP. zIndex is raised so the outgoing
+    // scene zooms ABOVE the incoming one during the overlap, then reset on hide.
     stl.addLabel('exit')
+    stl.set(SEL(scene.id), { zIndex: 5 }, 'exit')
     stl.to(
       SEL(scene.id),
       { '--seg-scale': ZOOM_OUT_SCALE, duration: exitDur, ease: 'power2.in' },
       'exit'
     )
     stl.to(SEL(scene.id), { opacity: 0, duration: exitDur, ease: 'power1.in' }, 'exit')
-    stl.set(SEL(scene.id), { display: 'none', opacity: 1, '--seg-scale': 1 })
+    stl.set(SEL(scene.id), { display: 'none', opacity: 1, '--seg-scale': 1, zIndex: 1 })
 
     segDurations[scene.id] = stl.duration()
     return stl

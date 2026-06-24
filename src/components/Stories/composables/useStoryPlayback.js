@@ -13,7 +13,6 @@ export function useStoryPlayback(ctx) {
     isPlaying,
     isPaused,
     currentTime,
-    numberOfSegments,
     segmentStartTimes,
     segments,
     showPlayButton,
@@ -21,22 +20,15 @@ export function useStoryPlayback(ctx) {
   } = ctx
 
   // --- Continuous video -> timeline sync ----------------------------------
-  // The <video> is the master clock; the GSAP master timeline (tl) is nudged to
-  // follow the actually displayed frame so overlay exits land exactly on the
-  // background cut (kills the systemic "early exit" lead). Correction is local
-  // to the current segment and skips while paused/seeking, so it never fights
-  // the boundary seek used to jump over skipped scenes.
+  // The master timeline is positioned in ABSOLUTE video time (each segment is
+  // added at scene.vstart), so syncing is an identity map: tl.time === video
+  // currentTime. The <video> stays the master clock; we only nudge tl when it
+  // drifts past one frame. When the video enters a gap left by a skipped scene
+  // (no built window covers it), we seek the video forward to the next built
+  // scene so skipped backgrounds are never shown.
   const SYNC_EPSILON = 0.04 // ~1 frame @30fps; only correct beyond this drift
   let frameHandle = null
   let syncStarted = false
-
-  const segIndexByTl = t => {
-    const segs = segments?.value || []
-    for (let i = segs.length - 1; i >= 0; i--) {
-      if (t >= segs[i].start - 1e-3) return i
-    }
-    return 0
-  }
 
   const syncToVideo = () => {
     const v = videoPlayer.value
@@ -44,15 +36,24 @@ export function useStoryPlayback(ctx) {
     if (isPaused.value || longPress.value) return
     const segs = segments?.value || []
     if (!segs.length) return
-    const t = tl.time()
-    const seg = segs[segIndexByTl(t)]
-    if (!seg) return
-    const vrel = v.currentTime - seg.vstart
-    // Ignore frames where the video is outside the current segment's range
-    // (e.g. mid-seek after a boundary jump) to avoid yanking the timeline.
-    if (vrel < -0.15 || vrel > seg.dur + 0.15) return
-    const expected = seg.start + Math.min(Math.max(vrel, 0), seg.dur)
-    if (Math.abs(t - expected) > SYNC_EPSILON) tl.time(expected)
+    const t = v.currentTime
+    // Inside a built scene's overlay span? Identity-map the timeline to video.
+    // The span is [vstart, vstart + dur); when a scene's dur overlaps the next
+    // one, both stay "active" so the exit zoom finishes before we ever skip.
+    const active = segs.some(s => t >= s.vstart - 1e-3 && t < s.vstart + s.dur - 1e-3)
+    if (active) {
+      if (Math.abs(tl.time() - t) > SYNC_EPSILON) tl.time(t)
+      return
+    }
+    // In a gap (skipped scene) or before the first scene: jump to the next
+    // built scene's start so the skipped background is never displayed.
+    const next = segs.find(s => s.vstart > t + 1e-3)
+    if (next) {
+      v.currentTime = next.vstart
+      return
+    }
+    // Past the last built window: pin the timeline to its end (final CTA holds).
+    if (tl.time() < tl.duration()) tl.time(tl.duration())
   }
 
   const startSync = () => {
@@ -122,6 +123,16 @@ export function useStoryPlayback(ctx) {
 
   const updateTime = () => {
     /* video timeupdate; master timeline drives currentTime */
+  }
+
+  // On the final CTA the background keeps looping its last few seconds (like the
+  // old stories) while the text + buttons stay put. Sync re-pins the timeline.
+  const FINAL_LOOP_BACK = 3
+  const handleVideoEnded = () => {
+    const v = videoPlayer.value
+    if (!v) return
+    v.currentTime = Math.max(0, (v.duration || 0) - FINAL_LOOP_BACK)
+    v.play().catch(() => {})
   }
 
   const playerPause = () => {
@@ -198,25 +209,29 @@ export function useStoryPlayback(ctx) {
     }
   }
 
+  // Prev/next jumps move between built scenes by their absolute video time.
+  // Both the <video> and the timeline are seeked to the same point, so they
+  // stay aligned by definition (no per-segment remapping needed).
   const jumpToSegment = direction => {
-    const starts = segmentStartTimes.value
-    let currentSegment = starts.findIndex((startTime, i) => {
-      return currentTime.value >= startTime && currentTime.value < starts[i + 1]
-    })
-    if (direction === 'backward') {
-      if (currentSegment === -1) {
-        tl.time(starts[Math.max(0, numberOfSegments.value - 2)] || 0)
-      } else {
-        let newTime = starts[currentSegment - 1]
-        if (newTime == null || newTime < 0) newTime = 0
-        tl.time(newTime)
-      }
-      notify('click_backward')
-    } else if (direction === 'forward') {
-      if (currentSegment === -1) return
-      const newTime = starts[currentSegment + 1]
-      if (newTime != null) tl.time(newTime)
+    const starts = segmentStartTimes.value // built scene vstarts, ascending
+    if (!starts.length) return
+    const v = videoPlayer.value
+    const t = v ? v.currentTime : tl.time()
+    let idx = 0
+    for (let i = 0; i < starts.length; i++) {
+      if (t >= starts[i] - 1e-3) idx = i
+    }
+    if (direction === 'forward') {
+      if (idx >= starts.length - 1) return // already on the last scene
+      const target = starts[idx + 1]
+      if (v) v.currentTime = target
+      tl.time(target)
       notify('click_forward')
+    } else {
+      const target = starts[Math.max(0, idx - 1)]
+      if (v) v.currentTime = target
+      tl.time(target)
+      notify('click_backward')
     }
   }
 
@@ -224,6 +239,7 @@ export function useStoryPlayback(ctx) {
     checkVideoPlayback,
     playVideo,
     updateTime,
+    handleVideoEnded,
     togglePlayState,
     press,
     release,

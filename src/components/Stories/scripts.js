@@ -142,26 +142,27 @@ export default {
       return (sum / ids.length) * 100
     })
 
-    const segmentStartTimes = computed(() => {
-      const arr = [0]
-      let cum = 0
-      builtIds.value.forEach(id => {
-        cum += segDurations[id] || 0
-        arr.push(cum)
+    // Built scenes' absolute video timecodes (ascending). Drives prev/next jumps.
+    const segmentStartTimes = computed(() =>
+      builtIds.value.map(id => {
+        const sc = SCENES.find(s => s.id === id)
+        return sc ? sc.vstart : 0
       })
-      return arr
-    })
+    )
 
-    // Active segments enriched with their video timecode (vstart) and tl start,
-    // used by the continuous video->timeline sync in useStoryPlayback.
+    // Active segments with their overlay video span [vstart, vstart + dur). The
+    // master timeline is positioned in absolute video time, so sync is an
+    // identity map (tl.time === video.currentTime). The span (overlay length,
+    // which may overlap the next scene) is used to detect the gaps left by
+    // skipped scenes and to let an exit finish before skipping. See
+    // useStoryPlayback.syncToVideo.
     const segments = computed(() =>
-      builtIds.value.map((id, i) => {
+      builtIds.value.map(id => {
         const sc = SCENES.find(s => s.id === id)
         return {
           id,
           vstart: sc ? sc.vstart : 0,
           dur: segDurations[id] || (sc ? sc.dur : 0),
-          start: segmentStartTimes.value[i] || 0,
         }
       })
     )
@@ -173,6 +174,7 @@ export default {
       checkVideoPlayback,
       playVideo,
       updateTime,
+      handleVideoEnded,
       togglePlayState,
       handleEvent,
       handleEventEnd,
@@ -241,7 +243,9 @@ export default {
         SCENES.forEach(scene => {
           if (scene.skip && skip[scene.skip]) return
           const stl = buildSegment(scene)
-          tl.add(stl)
+          // Place each segment at its absolute video timecode so the master
+          // timeline shares the video's clock and exits can overlap the cut.
+          tl.add(stl, scene.vstart)
           built.push(scene.id)
         })
         builtIds.value = built
@@ -256,7 +260,7 @@ export default {
           tl,
           videoPlayer,
           builtIds,
-          segDurations,
+          segments,
           fitCards,
           fitAllCards,
         })
@@ -280,6 +284,7 @@ export default {
       videoWebm,
       videoMp4,
       updateTime,
+      handleVideoEnded,
       playVideo,
       playButton,
       // data

@@ -2,25 +2,26 @@
 // production builds.
 export function installStoryDebugHook(ctx) {
   if (!import.meta.env.DEV) return
-  const { tl, videoPlayer, builtIds, segDurations, fitCards, fitAllCards } = ctx
+  const { tl, videoPlayer, builtIds, segments, fitCards, fitAllCards } = ctx
+
+  // Master timeline is positioned in absolute video time, so seeking is just
+  // setting both clocks to the same second.
+  const seekTo = t => {
+    tl.pause()
+    tl.time(t)
+    if (videoPlayer.value) {
+      videoPlayer.value.pause()
+      videoPlayer.value.currentTime = t
+    }
+  }
 
   window.__story = {
     tl,
     video: videoPlayer,
-    seek: t => {
-      tl.pause()
-      tl.time(t)
-      if (videoPlayer.value) videoPlayer.value.pause()
-    },
+    seek: seekTo,
     seekSeg: id => {
-      tl.pause()
-      let t = 0
-      for (const sid of builtIds.value) {
-        if (sid === id) break
-        t += segDurations[sid] || 0
-      }
-      tl.time(t + 0.9)
-      if (videoPlayer.value) videoPlayer.value.pause()
+      const seg = (segments?.value || []).find(s => s.id === id)
+      if (seg) seekTo(seg.vstart + 0.9)
     },
     builtIds,
     fitCards,
