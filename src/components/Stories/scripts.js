@@ -39,6 +39,7 @@ export default {
     // Per-segment progress tracking (preserves original "average per segment" model)
     const segTimes = reactive({})
     const segDurations = reactive({})
+    const segEntranceEnds = reactive({})
     const builtIds = ref([])
 
     // --- Video ---------------------------------------------------------------
@@ -162,6 +163,7 @@ export default {
           id,
           vstart: sc ? sc.vstart : 0,
           dur: segDurations[id] || (sc ? sc.dur : 0),
+          entranceEnd: segEntranceEnds[id] || 0,
         }
       })
     )
@@ -199,6 +201,7 @@ export default {
       fitCards,
       segTimes,
       segDurations,
+      segEntranceEnds,
     })
 
     const { parseParams, applyLocale, computeSkips } = useStoryData({

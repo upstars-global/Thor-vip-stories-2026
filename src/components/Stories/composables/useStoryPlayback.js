@@ -201,21 +201,29 @@ export function useStoryPlayback(ctx) {
   // stay aligned by definition (no per-segment remapping needed).
   //
   // Landing rule: each segment is added at its vstart, so its entrance plays
-  // over the first ~0.9s. Landing exactly on vstart freezes the content at its
-  // pre-entrance state (opacity 0). While PLAYING that is fine (the entrance
-  // animates in); but when PAUSED the playhead stays frozen and the scene shows
-  // no text. So when paused we land a touch past the entrance to reveal the
-  // settled content (mirrors the DEV seekSeg +0.9 offset).
-  const ENTRANCE_PREVIEW = 0.9
+  // over the first N seconds (N varies per scene: a 2-card fall is ~1.1s, a
+  // 4-card fall ~1.8s, the slots reels ~3s). Landing exactly on vstart freezes
+  // the content at its pre-entrance state (opacity 0). While PLAYING that is
+  // fine (the entrance animates in); but when PAUSED the playhead stays frozen.
+  //
+  // So when paused we land on the scene's OWN entrance end (segEntranceEnds,
+  // captured in buildSegment) so every scene shows fully-formed content -
+  // chips landed, reels locked - instead of a mid-animation frame. This is one
+  // data-driven rule, not per-scene hand-tuning. Clamped to stay before the
+  // exit zoom. EXIT_DUR/EPS mirror buildSegment's exit window.
+  const EXIT_DUR = 0.3
+  const SETTLE_EPS = 0.06 // nudge just past the last entrance tween
+  const FALLBACK_PREVIEW = 0.9 // used only if entranceEnd is unknown
 
   const landingTime = (target, idx) => {
     const v = videoPlayer.value
     if (!v || !v.paused) return target // playing -> exact start, entrance plays
     const seg = (segments?.value || [])[idx]
-    if (!seg) return target + ENTRANCE_PREVIEW
-    // Stay inside the scene: after the entrance, before the exit zoom (~0.3s).
-    const maxOffset = Math.max(0, seg.dur - 0.3 - 0.15)
-    return target + Math.min(ENTRANCE_PREVIEW, maxOffset)
+    if (!seg) return target + FALLBACK_PREVIEW
+    const settle = (seg.entranceEnd || FALLBACK_PREVIEW) + SETTLE_EPS
+    // Stay inside the scene: never reach into the exit zoom.
+    const maxOffset = Math.max(0, seg.dur - EXIT_DUR - 0.05)
+    return target + Math.min(settle, maxOffset)
   }
 
   const jumpToSegment = direction => {

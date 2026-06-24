@@ -7,7 +7,7 @@ import { SLOT_REST_COPY, SLOT_SPINS, slotCellY } from '../config/slotGeometry.js
 // --journey-y/--gift-y/--fall-y) are preserved exactly. Shared runtime state is
 // injected from the composition root.
 export function createAnimations(ctx) {
-  const { defaultDuration, daysDigits, fitCards, segTimes, segDurations } = ctx
+  const { defaultDuration, daysDigits, fitCards, segTimes, segDurations, segEntranceEnds } = ctx
 
   const SEL = id => `#stories-segment-${id}`
 
@@ -310,6 +310,9 @@ export function createAnimations(ctx) {
     const isFinalScene = scene.type === 'final'
     const exitDur = isFinalScene ? 0 : 0.3
     const entranceEnd = stl.duration()
+    // Expose the real settle point so paused prev/next can land on the fully
+    // formed scene (per-scene, data-driven; no hand-tuned offsets).
+    if (segEntranceEnds) segEntranceEnds[scene.id] = entranceEnd
     const holdSpan = Math.max(0.1, scene.dur - exitDur - entranceEnd)
     stl.to(SEL(scene.id), { duration: holdSpan }) // hold
 
