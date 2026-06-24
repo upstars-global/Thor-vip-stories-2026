@@ -226,6 +226,44 @@ export function useStoryPlayback(ctx) {
     return target + Math.min(settle, maxOffset)
   }
 
+  // Seek both clocks to `time`. A <video> seek is async (slow on iOS over the
+  // network). If the GSAP timeline keeps running during that seek it races
+  // ahead of the still-frozen background and is then snapped back by
+  // syncToVideo, which reads as the overlay "shaking"/jumping (most visible on
+  // the scene-5 cube). So we pause the timeline, seek the video, and only
+  // resume - in sync with the actually-decoded frame - once the video fires
+  // `seeked`. A timeout guards against a missing event so we can never freeze.
+  const seekBoth = (time, shouldPlay) => {
+    const v = videoPlayer.value
+    tl.pause()
+    tl.time(time)
+    if (!v) {
+      if (shouldPlay) tl.play()
+      return
+    }
+    if (Math.abs(v.currentTime - time) < 0.02) {
+      if (shouldPlay) {
+        tl.play()
+        v.play().catch(() => {})
+      }
+      return
+    }
+    let done = false
+    const resume = () => {
+      if (done) return
+      done = true
+      v.removeEventListener('seeked', resume)
+      tl.time(v.currentTime)
+      if (shouldPlay) {
+        tl.play()
+        v.play().catch(() => {})
+      }
+    }
+    v.addEventListener('seeked', resume, { once: true })
+    setTimeout(resume, 600)
+    v.currentTime = time
+  }
+
   const jumpToSegment = direction => {
     const starts = segmentStartTimes.value // built scene vstarts, ascending
     if (!starts.length) return
@@ -244,9 +282,11 @@ export function useStoryPlayback(ctx) {
       targetIdx = Math.max(0, idx - 1)
       notify('click_backward')
     }
+    // Resume playback after the seek based on the user's INTENT (isPaused), not
+    // the transient v.paused flag, which can momentarily read "paused" mid-seek
+    // and would otherwise leave the timeline frozen after a forward arrow.
     const land = landingTime(starts[targetIdx], targetIdx)
-    if (v) v.currentTime = land
-    tl.time(land)
+    seekBoth(land, !isPaused.value)
   }
 
   return {

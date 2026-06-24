@@ -398,12 +398,21 @@ a {
 }
 
 .slot-digit {
+  /* Cell height = font-size * 1.1 (160.973 * 1.1 = 177.0703) so the pitch stays
+     177.0703 + gap(6) = 183.07 (SLOT_STEP). Centering the glyph via flexbox with
+     line-height:1 makes vertical alignment deterministic across engines: iOS
+     Safari and Chrome position the glyph inside a tall line-box differently, so
+     relying on line-height:1.1 left the digits off-centre on real iOS. */
   width: 100%;
+  height: calc(177.0703 * var(--u));
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: 'Sora', sans-serif;
   font-weight: 800;
   font-size: px(160.973);
   color: $story-slot-digit;
-  line-height: 1.1;
+  line-height: 1;
   text-align: center;
 }
 
