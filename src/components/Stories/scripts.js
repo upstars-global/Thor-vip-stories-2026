@@ -83,7 +83,6 @@ export default {
     const isPlaying = ref(true)
     const isPaused = ref(false)
     const numberOfSegments = ref(SCENES.length)
-    const isVideoPlaying = ref(false)
     const showPlayButton = ref(false)
 
     // === Parent-frame bridge (notify is shared with timeline + playback) =====
@@ -171,7 +170,6 @@ export default {
     const { fitCards, fitAllCards, initViewport } = useViewportFit()
 
     const {
-      checkVideoPlayback,
       playVideo,
       updateTime,
       handleVideoEnded,
@@ -190,23 +188,17 @@ export default {
       isPlaying,
       isPaused,
       currentTime,
-      numberOfSegments,
       segmentStartTimes,
       segments,
       showPlayButton,
-      isVideoPlaying,
     })
 
     const { buildSegment } = createAnimations({
-      tl,
-      videoPlayer,
       defaultDuration,
       daysDigits,
       fitCards,
-      checkVideoPlayback,
       segTimes,
       segDurations,
-      showPlayButton,
     })
 
     const { parseParams, applyLocale, computeSkips } = useStoryData({

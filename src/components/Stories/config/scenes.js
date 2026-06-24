@@ -9,11 +9,14 @@
 // The designer numbers scenes 2..21 and omits 8/9 (those AE comps were dropped),
 // so scene 1 (intro, starts at 0) is implicit and his "10" maps to our scene 8,
 // etc. Each timecode HH:MM:SS:FF is converted at 60fps (sec = M*60 + S + F/60).
-// vstart = the moment a scene's background appears; dur = that background's
-// on-screen length, so segments stay contiguous (vstart[i+1] = vstart[i] + dur[i])
-// and the video plays through without re-seeking while no scene is skipped.
-// buildSegment lands every non-final scene's exit (zoom-out + fade) exactly on
-// scene.dur, i.e. on the next background cut. The final CTA remains visible.
+// vstart = the moment a scene's background appears; dur = the scene overlay's
+// own length. The timeline is positioned in ABSOLUTE video time
+// (tl.add(stl, vstart)), so dur only controls this overlay and is decoupled
+// from playback continuity. For most scenes dur == the gap to the next vstart,
+// so the exit (zoom-out + fade) lands exactly on the next background cut.
+// Scenes 8/10/12 carry a slightly LONGER dur on purpose: their exit zoom rides
+// a touch past the cut (the "наезд" overlap) so the content zoom-out matches
+// the background's own zoom (casino chips / cards). The final CTA stays visible.
 export const SCENES = [
   { id: 1, type: 'intro', vstart: 0, dur: 2.25 },
   { id: 2, type: 'greeting', vstart: 2.25, dur: 2.85 },
@@ -22,11 +25,11 @@ export const SCENES = [
   { id: 5, type: 'level', vstart: 15.17, dur: 3.91, skip: 'level' },
   { id: 6, type: 'fall', vstart: 19.08, dur: 3.09 },
   { id: 7, type: 'number', vstart: 22.17, dur: 3.91, skip: 'top' },
-  { id: 8, type: 'fall', vstart: 26.08, dur: 3.5 },
+  { id: 8, type: 'fall', vstart: 26.08, dur: 3.5 }, // dur +0.2 over cut: intentional overlap
   { id: 9, type: 'number', vstart: 29.38, dur: 3.94, skip: 'live' },
-  { id: 10, type: 'netball', vstart: 33.32, dur: 3.2 },
+  { id: 10, type: 'netball', vstart: 33.32, dur: 3.2 }, // dur +0.12 over cut: intentional overlap
   { id: 11, type: 'number', vstart: 36.4, dur: 3.93, skip: 'betting' },
-  { id: 12, type: 'fall', vstart: 40.33, dur: 3.5 },
+  { id: 12, type: 'fall', vstart: 40.33, dur: 3.5 }, // dur +0.41 over cut: intentional overlap
   { id: 13, type: 'number', vstart: 43.42, dur: 3.95, skip: 'cashback' },
   { id: 14, type: 'fall', vstart: 47.37, dur: 4.78 },
   { id: 15, type: 'game', vstart: 52.15, dur: 3.92, skip: 'game' },

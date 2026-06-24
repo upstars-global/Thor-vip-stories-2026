@@ -16,7 +16,6 @@ export function useStoryPlayback(ctx) {
     segmentStartTimes,
     segments,
     showPlayButton,
-    isVideoPlaying,
   } = ctx
 
   // --- Continuous video -> timeline sync ----------------------------------
@@ -100,18 +99,6 @@ export function useStoryPlayback(ctx) {
       })
     } else {
       begin()
-    }
-  }
-
-  const checkVideoPlayback = () => {
-    if (!videoPlayer.value) return
-    if (videoPlayer.value.paused) {
-      isVideoPlaying.value = false
-      showPlayButton.value = true
-      tl.pause()
-    } else {
-      isVideoPlaying.value = true
-      showPlayButton.value = false
     }
   }
 
@@ -212,6 +199,25 @@ export function useStoryPlayback(ctx) {
   // Prev/next jumps move between built scenes by their absolute video time.
   // Both the <video> and the timeline are seeked to the same point, so they
   // stay aligned by definition (no per-segment remapping needed).
+  //
+  // Landing rule: each segment is added at its vstart, so its entrance plays
+  // over the first ~0.9s. Landing exactly on vstart freezes the content at its
+  // pre-entrance state (opacity 0). While PLAYING that is fine (the entrance
+  // animates in); but when PAUSED the playhead stays frozen and the scene shows
+  // no text. So when paused we land a touch past the entrance to reveal the
+  // settled content (mirrors the DEV seekSeg +0.9 offset).
+  const ENTRANCE_PREVIEW = 0.9
+
+  const landingTime = (target, idx) => {
+    const v = videoPlayer.value
+    if (!v || !v.paused) return target // playing -> exact start, entrance plays
+    const seg = (segments?.value || [])[idx]
+    if (!seg) return target + ENTRANCE_PREVIEW
+    // Stay inside the scene: after the entrance, before the exit zoom (~0.3s).
+    const maxOffset = Math.max(0, seg.dur - 0.3 - 0.15)
+    return target + Math.min(ENTRANCE_PREVIEW, maxOffset)
+  }
+
   const jumpToSegment = direction => {
     const starts = segmentStartTimes.value // built scene vstarts, ascending
     if (!starts.length) return
@@ -221,22 +227,21 @@ export function useStoryPlayback(ctx) {
     for (let i = 0; i < starts.length; i++) {
       if (t >= starts[i] - 1e-3) idx = i
     }
+    let targetIdx
     if (direction === 'forward') {
       if (idx >= starts.length - 1) return // already on the last scene
-      const target = starts[idx + 1]
-      if (v) v.currentTime = target
-      tl.time(target)
+      targetIdx = idx + 1
       notify('click_forward')
     } else {
-      const target = starts[Math.max(0, idx - 1)]
-      if (v) v.currentTime = target
-      tl.time(target)
+      targetIdx = Math.max(0, idx - 1)
       notify('click_backward')
     }
+    const land = landingTime(starts[targetIdx], targetIdx)
+    if (v) v.currentTime = land
+    tl.time(land)
   }
 
   return {
-    checkVideoPlayback,
     playVideo,
     updateTime,
     handleVideoEnded,
