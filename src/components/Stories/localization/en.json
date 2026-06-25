@@ -16,32 +16,26 @@
   "some_moments": "Some moments",
   "impossible_forget": "are impossible to forget",
 
-  "top_winnings_label": "Your top winnings right now are",
+  "top_winnings_label": "Your top winnings\nright now are",
 
   "some_reactions": "Some reactions",
   "stronger_others": "are stronger than others",
 
   "biggest_hit_label": "Your biggest hit landed at",
 
-  "live_tables": "The Live tables",
-  "had_their_own": "had their own",
-  "chemistry": "chemistry",
+  "live_cards": ["The Live tables", "had their own", "chemistry"],
 
-  "live_wins_label": "Impressive, your total Live wins are",
+  "live_wins_label": "Impressive, your total\nLive wins are",
 
-  "you_trusted": "You trusted the feeling",
-  "paid_off": "— and it paid off!",
+  "trusted_cards": ["You trusted the feeling", "— and it paid off!"],
 
-  "betting_wins_label": "Your betting wins reached",
+  "betting_wins_label": "Your betting\nwins reached",
 
-  "even_experiments": "Even experiments",
-  "second_spark": "deserve a second spark",
+  "experiment_cards": ["Even experiments", "deserve a second spark"],
 
-  "cashback_label": "Your cashback is impressive",
+  "cashback_label": "Your cashback\nis impressive",
 
-  "what_game": "What is that one game",
-  "that_kept_you": "that kept you",
-  "coming_back": "coming back to?",
+  "game_cards": ["What is that one game", "that kept you", "coming back to?"],
 
   "game_of_season": "Your game of the season is",
 

@@ -1,4 +1,4 @@
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import StoriesTopBar from '@components/Stories/UI/storiesTopBar.vue'
 import mobileControlArea from '@components/Stories/UI/mobileControlArea.vue'
 import desktopControlButton from '@components/Stories/UI/desktopControlButton.vue'
@@ -13,6 +13,15 @@ import gameFireFrame from '@components/Stories/img/game-fire-frame.webp'
 import { LEVEL_WORD_KEY } from './config/levelConfig.js'
 import { SLOT_COPIES } from './config/slotGeometry.js'
 import { SCENES } from './config/scenes.js'
+import { getScene4Positions } from './config/scene4Cards.js'
+import { getScene5LevelLayout } from './config/scene5LevelLayout.js'
+import { getScene10Positions } from './config/scene10Cards.js'
+import { getScene12Positions } from './config/scene12Cards.js'
+import { getScene14Positions } from './config/scene14Cards.js'
+import { getScene17NumberLayout } from './config/scene17NumberLayout.js'
+import { getScene8Positions } from './config/scene8Cards.js'
+import { getScene9NumberLayout } from './config/scene9NumberLayout.js'
+import { getScene19FinalLayout } from './config/scene19FinalLayout.js'
 import { useStoryBridge } from './composables/useStoryBridge.js'
 import { useViewportFit } from './composables/useViewportFit.js'
 import { useStoryPlayback } from './composables/useStoryPlayback.js'
@@ -50,6 +59,7 @@ export default {
 
     // --- Data refs -----------------------------------------------------------
     const texts = ref('en')
+    const lang = ref('en')
     const currency = ref('EUR')
     const name = ref('')
     const days = ref(0)
@@ -85,6 +95,9 @@ export default {
     const isPaused = ref(false)
     const numberOfSegments = ref(SCENES.length)
     const showPlayButton = ref(false)
+    // True while we hold playback waiting for a safe video buffer (cold start).
+    // Drives the Vue loading overlay; cleared by useStoryPlayback once playing.
+    const isBuffering = ref(false)
 
     // === Parent-frame bridge (notify is shared with timeline + playback) =====
     const { notify, getGift, closeStory, watchAgain } = useStoryBridge({
@@ -129,6 +142,87 @@ export default {
     const cashbackValue = computed(() => cashback.value)
     const giftsCount = computed(() => gifts_count.value)
     const showGiftBtn = computed(() => !!end_link.value)
+
+    const journeyCards = computed(() => {
+      const cards = [texts.value.every_journey, texts.value.leaves_mark].filter(Boolean)
+      const positions = getScene4Positions(lang.value)
+      return cards.map((text, i) => ({
+        text,
+        ...(positions[i] || positions[0]),
+      }))
+    })
+
+    const trustedCards = computed(() => {
+      const cards = texts.value.trusted_cards || []
+      const positions = getScene10Positions(lang.value)
+      return cards.map((text, i) => ({
+        text,
+        ...(positions[i] || positions[0]),
+      }))
+    })
+
+    const levelLayoutStyle = computed(() => {
+      const layout = getScene5LevelLayout(lang.value)
+      return {
+        '--level-top-text-top': layout.topTextTop,
+        '--level-name-top': layout.levelTop,
+        '--level-bottom-text-top': layout.bottomTextTop,
+      }
+    })
+
+    const experimentCards = computed(() => {
+      const cards = texts.value.experiment_cards || []
+      const positions = getScene12Positions(lang.value)
+      return cards.map((text, i) => ({
+        text,
+        ...(positions[i] || positions[0]),
+      }))
+    })
+
+    const gameCards = computed(() => {
+      const cards = texts.value.game_cards || []
+      const positions = getScene14Positions(lang.value)
+      return cards.map((text, i) => ({
+        text,
+        ...(positions[i] || positions[0]),
+      }))
+    })
+
+    const liveCards = computed(() => {
+      const cards = texts.value.live_cards || []
+      const positions = getScene8Positions(lang.value)
+      return cards.map((text, i) => ({
+        text,
+        ...(positions[i] || positions[0]),
+      }))
+    })
+
+    const liveNumberLayoutStyle = computed(() => {
+      const layout = getScene9NumberLayout(lang.value)
+      return {
+        '--number-label-top': layout.labelTop,
+        '--number-label-width': layout.labelWidth,
+        '--number-value-top': layout.numberTop,
+      }
+    })
+
+    const giftsNumberLayoutStyle = computed(() => {
+      const layout = getScene17NumberLayout(lang.value)
+      return {
+        '--number-label-top': layout.labelTop,
+        '--number-label-width': layout.labelWidth,
+        '--number-value-top': layout.numberTop,
+      }
+    })
+
+    const finalCopyStyle = computed(() => {
+      const layout = getScene19FinalLayout(lang.value)
+      return {
+        '--final-copy-top': layout.top,
+        '--final-copy-width': layout.width,
+        '--final-copy-gap': layout.gap,
+      }
+    })
 
     // --- Progress (average over active segments) -----------------------------
     const progress = computed(() => {
@@ -193,6 +287,7 @@ export default {
       segmentStartTimes,
       segments,
       showPlayButton,
+      isBuffering,
     })
 
     const { buildSegment } = createAnimations({
@@ -206,6 +301,7 @@ export default {
 
     const { parseParams, applyLocale, computeSkips } = useStoryData({
       texts,
+      lang,
       currency,
       name,
       days,
@@ -221,6 +317,19 @@ export default {
       cubeSrc,
       levelKey,
       skip,
+    })
+
+    // Hide the branded WinSpirit preloader (raw HTML in index.html, shown from
+    // first paint so it also masks the pre-mount/FOUC window) the moment the
+    // video is buffered and the first frame is about to play. Driven by the
+    // same isBuffering signal that gates playback, so the brand stays on screen
+    // for the whole cold-start instead of a generic spinner.
+    const hidePreloader = () => {
+      const el = document.querySelector('.fe-preloader')
+      if (el) el.classList.add('fe-preloader--hidden')
+    }
+    watch(isBuffering, buffering => {
+      if (!buffering) hidePreloader()
     })
 
     onMounted(() => {
@@ -292,6 +401,7 @@ export default {
       dayOfItText,
       cubeSrc,
       levelName,
+      levelLayoutStyle,
       currency,
       topWinnings,
       liveWins,
@@ -301,6 +411,14 @@ export default {
       favorite_game_name,
       favorite_game_thunbnail,
       showGiftBtn,
+      journeyCards,
+      trustedCards,
+      experimentCards,
+      gameCards,
+      liveCards,
+      liveNumberLayoutStyle,
+      giftsNumberLayoutStyle,
+      finalCopyStyle,
       // assets
       story_icon,
       watchAgainIcon,

@@ -77,7 +77,9 @@ export default {
 }
 
 .stories-progress-bar {
+  /* svh: stable across iOS address-bar show/hide so the bar doesn't jump on load */
   margin-top: 2.5vh;
+  margin-top: 2.5svh;
   position: relative;
   top: 0;
   width: 100%;

@@ -16,6 +16,7 @@ export function useStoryPlayback(ctx) {
     segmentStartTimes,
     segments,
     showPlayButton,
+    isBuffering,
   } = ctx
 
   // --- Continuous video -> timeline sync ----------------------------------
@@ -69,37 +70,155 @@ export function useStoryPlayback(ctx) {
     if (frameHandle != null) cancelAnimationFrame(frameHandle)
     frameHandle = null
     syncStarted = false
+    detachStallHandlers()
   }
 
-  // Start video first, then gate tl.play(0) on the first presented frame so the
-  // two clocks begin aligned instead of letting GSAP race ahead during decode.
+  // --- Stall handling -----------------------------------------------------
+  // The <video> is the master clock and syncToVideo drags the GSAP timeline to
+  // match it every frame. If the buffer drains mid-playback (common on a cold
+  // iOS load of a heavy mp4) the video freezes while currentTime stops
+  // advancing, but GSAP would keep being re-pinned to a stuttering value -
+  // visible as jank. So when the video reports it has stalled we PAUSE the
+  // timeline, and only resume (re-aligned to the freshly decoded frame) once it
+  // is actually playing again. We act only after a real stall (wasWaiting) so
+  // this never interferes with normal seeks or the final-scene loop.
+  let stallHandlersAttached = false
+  let wasWaiting = false
+
+  const onWaiting = () => {
+    wasWaiting = true
+    tl.pause()
+  }
+  const onPlaying = () => {
+    if (!wasWaiting) return
+    wasWaiting = false
+    const v = videoPlayer.value
+    if (!v) return
+    // Respect a user-intended pause: don't fight togglePlayState/hold-to-pause.
+    if (isPaused.value || longPress.value) return
+    tl.time(v.currentTime)
+    tl.play()
+  }
+
+  const attachStallHandlers = () => {
+    const v = videoPlayer.value
+    if (!v || stallHandlersAttached) return
+    stallHandlersAttached = true
+    v.addEventListener('waiting', onWaiting)
+    v.addEventListener('stalled', onWaiting)
+    v.addEventListener('playing', onPlaying)
+  }
+  const detachStallHandlers = () => {
+    const v = videoPlayer.value
+    stallHandlersAttached = false
+    wasWaiting = false
+    if (!v) return
+    v.removeEventListener('waiting', onWaiting)
+    v.removeEventListener('stalled', onWaiting)
+    v.removeEventListener('playing', onPlaying)
+  }
+
+  // --- Buffer gate --------------------------------------------------------
+  // Hold the start of playback until the clip is genuinely ready to play the
+  // first few seconds smoothly, so GSAP never races ahead of a choppy cold
+  // decode. Ready means readyState >= HAVE_FUTURE_DATA AND the buffered range
+  // covering the playhead extends at least START_BUFFER seconds ahead. A
+  // safety timeout guarantees we always start, even on a slow network, so the
+  // story can never hang forever waiting for buffer.
+  const START_BUFFER = 1.5 // seconds of lookahead before we begin
+  const BUFFER_TIMEOUT = 6000 // ms hard cap on the wait
+
+  const hasStartBuffer = v => {
+    if (!v) return true
+    if (v.readyState < 3 /* HAVE_FUTURE_DATA */) return false
+    try {
+      const t = v.currentTime
+      const ranges = v.buffered
+      for (let i = 0; i < ranges.length; i++) {
+        if (ranges.start(i) <= t + 1e-3 && ranges.end(i) - t >= START_BUFFER) {
+          return true
+        }
+      }
+    } catch (e) {
+      // buffered access can throw before metadata is known; treat as not-ready
+    }
+    return false
+  }
+
+  const awaitStartBuffer = v =>
+    new Promise(resolve => {
+      if (hasStartBuffer(v)) {
+        resolve()
+        return
+      }
+      let done = false
+      const finish = () => {
+        if (done) return
+        done = true
+        clearTimeout(timer)
+        v.removeEventListener('progress', check)
+        v.removeEventListener('canplay', check)
+        v.removeEventListener('canplaythrough', check)
+        v.removeEventListener('loadeddata', check)
+        resolve()
+      }
+      const check = () => {
+        if (hasStartBuffer(v)) finish()
+      }
+      const timer = setTimeout(finish, BUFFER_TIMEOUT)
+      v.addEventListener('progress', check)
+      v.addEventListener('canplay', check)
+      v.addEventListener('canplaythrough', check)
+      v.addEventListener('loadeddata', check)
+    })
+
+  // Kick off the network fetch (iOS often won't preload a paused <video> until
+  // load()/play() is called), wait for a safe buffer, then play the video and
+  // gate tl.play(0) on the first presented frame so both clocks begin aligned.
   const startPlayback = () => {
     const v = videoPlayer.value
-    const begin = () => {
-      if (v && typeof v.requestVideoFrameCallback === 'function') {
-        v.requestVideoFrameCallback(() => {
-          tl.play(0)
-          startSync()
-        })
-      } else {
-        tl.play(0)
-        startSync()
-      }
-    }
     if (!v) {
+      if (isBuffering) isBuffering.value = false
       tl.play(0)
       startSync()
       return
     }
-    const p = v.play()
-    if (p && typeof p.then === 'function') {
-      p.then(begin).catch(() => {
-        showPlayButton.value = true
+    const begin = () => {
+      attachStallHandlers()
+      // Clear isBuffering (hides the branded preloader) exactly when the first
+      // frame is presented and the timeline starts, so there is no gap between
+      // the loader fading out and real content appearing.
+      if (typeof v.requestVideoFrameCallback === 'function') {
+        v.requestVideoFrameCallback(() => {
+          tl.play(0)
+          startSync()
+          if (isBuffering) isBuffering.value = false
+        })
+      } else {
+        tl.play(0)
         startSync()
-      })
-    } else {
-      begin()
+        if (isBuffering) isBuffering.value = false
+      }
     }
+    const launch = () => {
+      const p = v.play()
+      if (p && typeof p.then === 'function') {
+        p.then(begin).catch(() => {
+          if (isBuffering) isBuffering.value = false
+          showPlayButton.value = true
+          startSync()
+        })
+      } else {
+        begin()
+      }
+    }
+    if (isBuffering) isBuffering.value = true
+    try {
+      v.load() // ensure buffered ranges actually grow on iOS
+    } catch (e) {
+      /* no-op */
+    }
+    awaitStartBuffer(v).then(launch)
   }
 
   const playVideo = () => {

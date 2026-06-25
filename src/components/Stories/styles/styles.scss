@@ -6,7 +6,11 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  /* Anchor to the small viewport so the height never grows/shrinks with the
+     iOS Safari address bar. This stabilizes both --u (100cqh) and every vh-based
+     top UI element. Inside the prod iframe svh == 100% so this is a no-op there. */
+  height: 100vh;
+  height: 100svh;
   overflow: hidden;
   transform-origin: center center;
 }
@@ -54,6 +58,12 @@
 
 .stories-segment {
   z-index: 1;
+  /* Hidden by default so no scene paints before GSAP reveals it. The builder
+     flips this to flex at each scene's entrance (buildEntrance) and back to
+     none on exit. Without this, every segment renders stacked at center for the
+     frame between Vue mount and the GSAP build in nextTick - reading as a
+     "flash"/spoiler of a later scene on slow devices (cold-start FOUC). */
+  display: none;
   /* Each segment is the scaled 1080x1920 design canvas. GSAP toggles display
      and opacity on the root; the zoom-into-camera exit rides --seg-scale, so the
      centering translate(-50%, -50%) stays a live % and is never frozen by GSAP. */
@@ -154,6 +164,7 @@
   margin-left: 87%;
   transform: unset;
   top: 5vh;
+  top: 5svh;
   z-index: 9999;
   cursor: pointer;
   @include media(M) {
@@ -235,6 +246,7 @@ a {
   display: flex;
   justify-content: left;
   margin-top: 1.2vh;
+  margin-top: 1.2svh;
   margin-left: 5%;
   z-index: 10;
   align-items: center;
@@ -258,13 +270,34 @@ a {
   z-index: 5;
 }
 
+.stories-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #000;
+}
+
+.stories-fallback .max_with_bigger {
+  left: auto;
+  transform: none;
+}
+
 .play_button {
   position: relative;
-  left: 50%;
-  transform: translate(-50%);
+  left: 0;
+  transform: none;
   width: 15vh;
+  width: 15svh;
   height: 15vh;
+  height: 15svh;
   margin-top: 3vh;
+  margin-top: 3svh;
 }
 
 /* Season 2 video background */
@@ -434,7 +467,7 @@ a {
   font-size: px(55);
   font-weight: 500;
   line-height: normal;
-  white-space: nowrap;
+  white-space: pre-line;
 }
 
 .scene-bottom-text {
@@ -451,7 +484,7 @@ a {
   font-size: px(55);
   font-weight: 500;
   line-height: normal;
-  white-space: nowrap;
+  white-space: pre-line;
 }
 
 /* Shared card styles */
@@ -498,9 +531,13 @@ a {
 }
 
 .journey-card {
+  --cx: 540;
+  --cy: 960;
   --journey-y: 0dvh;
   --journey-rotate: 0deg;
   position: absolute;
+  top: calc(var(--cy) * var(--u));
+  left: calc(var(--cx) * var(--u));
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -522,13 +559,12 @@ a {
   box-shadow: none;
   backdrop-filter: none;
   transform-origin: center;
-  transform: translateY(var(--journey-y)) rotate(var(--journey-rotate));
+  transform: translate(-50%, calc(-50% + var(--journey-y)))
+    rotate(var(--journey-rotate));
   will-change: transform, opacity;
 }
 
 .journey-card--top {
-  top: px(792);
-  left: px(192);
   padding: px(26) px(50) px(27) px(48);
   border-width: px(2);
   --journey-rotate: 2.15deg;
@@ -536,8 +572,6 @@ a {
 }
 
 .journey-card--bottom {
-  top: px(922);
-  left: px(258);
   padding: px(29) px(50) px(30) px(48);
   border-width: px(1);
   --journey-rotate: -2.66deg;
@@ -663,7 +697,7 @@ a {
 
 .scene-cube-top {
   position: absolute;
-  top: px(1311);
+  top: calc(var(--level-top-text-top, 1242) * var(--u));
   left: 50%;
   @include cx-enter;
   width: px(820);
@@ -672,11 +706,12 @@ a {
   font-weight: 500;
   color: $story-text-muted;
   text-align: center;
+  white-space: pre-line;
 }
 
 .scene-cube-level {
   position: absolute;
-  top: px(1394);
+  top: calc(var(--level-name-top, 1394) * var(--u));
   left: 50%;
   @include cx-enter;
   width: px(820);
@@ -690,7 +725,7 @@ a {
 
 .scene-cube-bottom {
   position: absolute;
-  top: px(1529);
+  top: calc(var(--level-bottom-text-top, 1529) * var(--u));
   left: 50%;
   @include cx-enter;
   width: px(820);
@@ -706,7 +741,7 @@ a {
 
 /* Number stat scenes */
 .scene-num-label {
-  @include at-cx(684, 737);
+  @include at-cx(684, 910);
   font-family: 'Sora', sans-serif;
   font-weight: 500;
   font-size: px(55);
@@ -714,13 +749,17 @@ a {
   text-align: center;
   color: $story-text-primary;
   opacity: 0.85;
+  white-space: pre-line;
 }
 
 .big-number {
-  @include at-cx(776, 480);
+  --number-fit: 1;
+  @include at-cx(776, 1080);
+  width: max-content;
+  min-width: 0;
   font-family: 'Sora', sans-serif;
   font-weight: 800;
-  font-size: px(450);
+  font-size: calc(450 * var(--u) * var(--number-fit));
   line-height: normal;
   color: $story-text-strong;
   text-align: center;
@@ -730,9 +769,25 @@ a {
   paint-order: stroke fill;
 }
 
+.scene-number-stack {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.scene-number-stack .scene-num-label--stacked {
+  top: calc(var(--number-label-top, 684) * var(--u));
+  width: calc(var(--number-label-width, 910) * var(--u));
+}
+
+.scene-number-stack .big-number--stacked {
+  top: calc(var(--number-value-top, 776) * var(--u));
+  width: max-content;
+}
+
 /* Scene 17: gifts collection has its own label and number placement. */
 .scene-num-label--gifts {
-  @include at-cx(716, 696);
+  @include at-cx(716, 900);
 }
 
 .big-number--gifts {
@@ -743,13 +798,14 @@ a {
    group, preserving the spacing between title, game name, and frame. */
 #stories-segment-15 {
   --s15-shift: 0px;
+  --game-frame-offset: 0px;
   @include media(M) {
     --s15-shift: #{px(60)};
   }
 }
 
 .scene-game-label {
-  @include at-cx(222, 743);
+  @include at-cx(222, 790);
   top: calc(px(222) + var(--s15-shift));
   font-family: 'Sora', sans-serif;
   font-weight: 500;
@@ -791,7 +847,7 @@ a {
    thumbnail is positioned separately underneath that window. */
 .game-fire-frame {
   position: absolute;
-  top: calc(px(508) + var(--s15-shift));
+  top: calc(px(508) + var(--s15-shift) + var(--game-frame-offset));
   left: 50%;
   @include cx-enter;
   width: content-px(1092);
@@ -806,7 +862,7 @@ a {
 /* Slightly oversized so the game art sits under the PNG border without gaps. */
 .game-frame {
   position: absolute;
-  top: calc(px(635) + var(--s15-shift));
+  top: calc(px(635) + var(--s15-shift) + var(--game-frame-offset));
   left: px(544);
   @include cx-enter;
   width: content-px(758);
@@ -825,7 +881,7 @@ a {
 
 /* Scene 16: rewards lock message */
 .scene-lock-text {
-  @include at-cx(1359, 737);
+  @include at-cx(1359, 952);
   font-family: 'Sora', sans-serif;
   font-weight: 500;
   font-size: px(55);
@@ -833,11 +889,12 @@ a {
   text-align: center;
   color: $story-text-primary;
   opacity: 0.92;
+  white-space: pre-line;
 }
 
 /* Scene 18: season closing text */
 .scene-flame-title {
-  @include at-cx(840, 581);
+  @include at-cx(840, 820);
   font-family: 'Sora', sans-serif;
   font-weight: 700;
   font-size: px(95);
@@ -845,6 +902,7 @@ a {
   text-transform: uppercase;
   text-align: center;
   color: $story-text-primary;
+  white-space: pre-line;
 }
 
 .scene-flame-sub {
@@ -856,11 +914,35 @@ a {
   text-align: center;
   color: $story-text-primary;
   opacity: 0.8;
+  white-space: pre-line;
 }
 
 /* Scene 19: final message and actions */
+.scene-final-copy {
+  position: absolute;
+  top: calc(var(--final-copy-top, 837) * var(--u));
+  left: 50%;
+  transform: translateX(-50%);
+  transform-origin: center top;
+  width: calc(var(--final-copy-width, 923) * var(--u));
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--final-copy-gap, 23) * var(--u));
+  text-align: center;
+}
+
 .scene-final-top {
-  @include at-cx(837, 581);
+  --ey: 0;
+  --es: 1;
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 100%;
+  max-width: none;
+  transform: translateY(calc(var(--ey) * 1dvh)) scale(var(--es));
+  transform-origin: center center;
   font-family: 'Sora', sans-serif;
   font-weight: 500;
   font-size: px(55);
@@ -868,12 +950,20 @@ a {
   text-align: center;
   color: $story-text-primary;
   opacity: 0.85;
+  white-space: pre-line;
 }
 
 .scene-final-name {
-  @include at-cx(929, 533);
+  --ey: 0;
+  --es: 1;
   /* Names vary by user, so this line sizes to content instead of a fixed box. */
-  width: auto;
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 100%;
+  max-width: none;
+  transform: translateY(calc(var(--ey) * 1dvh)) scale(var(--es));
+  transform-origin: center center;
   white-space: nowrap;
   font-family: 'Sora', sans-serif;
   font-weight: 800;
@@ -899,21 +989,26 @@ a {
 /* Final scene replay action */
 .cta-replay {
   @include at-cx(1736, 510);
+  display: inline-flex;
   width: auto;
   height: px(89);
   padding: 0;
   border-radius: 0;
-  font-size: px(55);
+  font-size: px(61.239);
+  line-height: normal;
   font-weight: 700;
   background: transparent;
   color: $story-text-primary;
-  gap: px(16);
-  align-items: center;
+  gap: px(27);
+  align-items: flex-end;
+  white-space: nowrap;
 }
 
 .watch_again_icon {
-  width: px(56);
-  height: px(56);
+  width: px(89);
+  height: px(89);
+  min-width: px(89);
+  flex: 0 0 px(89);
   margin: 0;
   filter: brightness(0) invert(1);
 }

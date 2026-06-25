@@ -24,7 +24,7 @@
       </div>
 
       <!-- Tap to start overlay -->
-      <div id="stories-segment-0" v-if="showPlayButton" class="stories-segment" style="display: flex; z-index: 1000; background-color: black;">
+      <div id="stories-segment-0" v-if="showPlayButton" class="stories-fallback">
         <div class="h3 max_with_bigger">{{ texts.press }}</div>
         <img :src="playButton" @click="playVideo" class="play_button" alt="">
       </div>
@@ -71,13 +71,18 @@
       <!-- 4: fall — journey -->
       <div id="stories-segment-4" class="stories-segment" :style="animationPauseStyle">
         <div class="chips chips--journey">
-          <div class="chip chip--a journey-card journey-card--top">{{ texts.every_journey }}</div>
-          <div class="chip chip--b journey-card journey-card--bottom">{{ texts.leaves_mark }}</div>
+          <div
+            v-for="(card, idx) in journeyCards"
+            :key="'journey-' + idx"
+            class="chip journey-card"
+            :class="card.className"
+            :style="`--cx:${card.cx};--cy:${card.cy};--journey-rotate:${card.tilt}deg`"
+          >{{ card.text }}</div>
         </div>
       </div>
 
       <!-- 5: level cube -->
-      <div id="stories-segment-5" class="stories-segment" :style="animationPauseStyle">
+      <div id="stories-segment-5" class="stories-segment" :style="[animationPauseStyle, levelLayoutStyle]">
         <img v-if="cubeSrc" :src="cubeSrc" class="cube-img" alt="level"/>
         <div class="scene-cube-top">{{ texts.this_season_reached }}</div>
         <div class="scene-cube-level">{{ levelName }} {{ texts.level_suffix }}</div>
@@ -101,23 +106,34 @@
       <!-- 8: fall — live tables (Figma node 31550:220760) -->
       <div id="stories-segment-8" class="stories-segment" :style="animationPauseStyle">
         <div class="fall-cards">
-          <div class="fall-card fall-card--a" style="--cx:449.67;--cy:1215.17;--tilt:2.15deg">{{ texts.live_tables }}</div>
-          <div class="fall-card fall-card--b" style="--cx:578.15;--cy:1347.59;--tilt:-2.66deg">{{ texts.had_their_own }}</div>
-          <div class="fall-card fall-card--a" style="--cx:713.18;--cy:1481.34;--tilt:2.15deg">{{ texts.chemistry }}</div>
+          <div
+            v-for="(card, idx) in liveCards"
+            :key="'live-' + idx"
+            class="fall-card"
+            :class="card.className"
+            :style="`--cx:${card.cx};--cy:${card.cy};--tilt:${card.tilt}deg`"
+          >{{ card.text }}</div>
         </div>
       </div>
 
       <!-- 9: number — live wins (Figma node 31550:220858) -->
       <div id="stories-segment-9" class="stories-segment" :style="animationPauseStyle">
-        <div class="h5 scene-num-label">{{ texts.live_wins_label }}</div>
-        <div class="big-number">{{ liveWins }}</div>
+        <div class="scene-number-stack scene-number-stack--live" :style="liveNumberLayoutStyle">
+          <div class="h5 scene-num-label scene-num-label--stacked">{{ texts.live_wins_label }}</div>
+          <div class="big-number big-number--stacked">{{ liveWins }}</div>
+        </div>
       </div>
 
       <!-- 10: netball — trusted (Figma node 31550:220779) -->
       <div id="stories-segment-10" class="stories-segment" :style="animationPauseStyle">
         <div class="fall-cards">
-          <div class="fall-card fall-card--a" style="--cx:539.62;--cy:1296.87;--tilt:2.15deg">{{ texts.you_trusted }}</div>
-          <div class="fall-card fall-card--b" style="--cx:647.77;--cy:1466.97;--tilt:-2.66deg">{{ texts.paid_off }}</div>
+          <div
+            v-for="(card, idx) in trustedCards"
+            :key="'trusted-' + idx"
+            class="fall-card"
+            :class="card.className"
+            :style="`--cx:${card.cx};--cy:${card.cy};--tilt:${card.tilt}deg`"
+          >{{ card.text }}</div>
         </div>
       </div>
 
@@ -130,8 +146,13 @@
       <!-- 12: fall — experiments (Figma node 31550:220897) -->
       <div id="stories-segment-12" class="stories-segment" :style="animationPauseStyle">
         <div class="fall-cards">
-          <div class="fall-card fall-card--a" style="--cx:539.71;--cy:1318.74;--tilt:2.15deg">{{ texts.even_experiments }}</div>
-          <div class="fall-card fall-card--b" style="--cx:539.66;--cy:1456.78;--tilt:-2.66deg">{{ texts.second_spark }}</div>
+          <div
+            v-for="(card, idx) in experimentCards"
+            :key="idx"
+            class="fall-card"
+            :class="card.className"
+            :style="`--cx:${card.cx};--cy:${card.cy};--tilt:${card.tilt}deg`"
+          >{{ card.text }}</div>
         </div>
       </div>
 
@@ -144,9 +165,13 @@
       <!-- 14: fall — what game (Figma node 31550:220994) -->
       <div id="stories-segment-14" class="stories-segment" :style="animationPauseStyle">
         <div class="fall-cards">
-          <div class="fall-card fall-card--a" style="--cx:540.12;--cy:823.44;--tilt:2.15deg">{{ texts.what_game }}</div>
-          <div class="fall-card fall-card--b" style="--cx:466.32;--cy:966.48;--tilt:-2.66deg">{{ texts.that_kept_you }}</div>
-          <div class="fall-card fall-card--a" style="--cx:590.93;--cy:1114.71;--tilt:0deg">{{ texts.coming_back }}</div>
+          <div
+            v-for="(card, idx) in gameCards"
+            :key="idx"
+            class="fall-card"
+            :class="card.className"
+            :style="`--cx:${card.cx};--cy:${card.cy};--tilt:${card.tilt}deg`"
+          >{{ card.text }}</div>
         </div>
       </div>
 
@@ -172,8 +197,10 @@
 
       <!-- 17: number — gifts collection (Figma node 31550:220920) -->
       <div id="stories-segment-17" class="stories-segment" :style="animationPauseStyle">
-        <div class="h5 scene-num-label scene-num-label--gifts">{{ texts.gifts_collection }}</div>
-        <div class="big-number big-number--gifts">{{ giftsCount }}</div>
+        <div class="scene-number-stack scene-number-stack--gifts" :style="giftsNumberLayoutStyle">
+          <div class="h5 scene-num-label scene-num-label--gifts scene-num-label--stacked">{{ texts.gifts_collection }}</div>
+          <div class="big-number big-number--gifts big-number--stacked">{{ giftsCount }}</div>
+        </div>
       </div>
 
       <!-- 18: flame out (Figma node 31550:220935) -->
@@ -184,8 +211,10 @@
 
       <!-- 19: final (Figma node 31550:220942) -->
       <div id="stories-segment-19" class="stories-segment" :style="animationPauseStyle">
-        <div class="h5 scene-final-top">{{ texts.see_you_next }}</div>
-        <div class="h2 scene-final-name">{{ name }}!</div>
+        <div class="scene-final-copy" :style="finalCopyStyle">
+          <div class="h5 scene-final-top">{{ texts.see_you_next }}</div>
+          <div class="h2 scene-final-name">{{ name }}!</div>
+        </div>
         <a v-if="showGiftBtn" @click="getGift">
           <div class="end_button cta-primary">{{ texts.end_btn_gift }}</div>
         </a>

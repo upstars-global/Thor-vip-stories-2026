@@ -1,61 +1,55 @@
 {
   "press": "Tap to start",
 
-  "hello": "Hi,",
+  "hello": "Olá,",
 
-  "season_rhythm": "Season 2 had its own rhythm.",
-  "day_of_it": "And you are on day {days} of it",
+  "season_rhythm": "A Temporada 2 teve o seu\npróprio ritmo",
+  "day_of_it": "E estás no dia {days} dela",
 
-  "every_journey": "Every journey",
-  "leaves_mark": "leaves its mark",
+  "every_journey": "Cada jornada",
+  "leaves_mark": "deixa a sua marca",
 
-  "this_season_reached": "This season, you reached",
-  "level_suffix": "level",
-  "in_vip_club": "in the VIP Club",
+  "this_season_reached": "Nesta temporada alcançaste o nível",
+  "level_suffix": "",
+  "in_vip_club": "no Clube VIP",
 
-  "some_moments": "Some moments",
-  "impossible_forget": "are impossible to forget",
+  "some_moments": "Há momentos",
+  "impossible_forget": "impossíveis de esquecer",
 
-  "top_winnings_label": "Your top winnings right now are",
+  "top_winnings_label": "As tuas principais vitórias até agora são",
 
-  "some_reactions": "Some reactions",
-  "stronger_others": "are stronger than others",
+  "some_reactions": "Algumas reações são",
+  "stronger_others": "mais fortes do que outras",
 
-  "biggest_hit_label": "Your biggest hit landed at",
+  "biggest_hit_label": "O teu maior acerto chegou a",
 
-  "live_tables": "The Live tables",
-  "had_their_own": "had their own",
-  "chemistry": "chemistry",
+  "live_cards": ["As mesas de Casino ao", "Vivo tiveram a sua", "própria química"],
 
-  "live_wins_label": "Impressive, your total Live wins are",
+  "live_wins_label": "Impressionante, as tuas vitórias totais no Casino ao Vivo são",
 
-  "you_trusted": "You trusted the feeling",
-  "paid_off": "— and it paid off!",
+  "trusted_cards": ["Confiaste no teu instinto", "— e valeu a pena!"],
 
-  "betting_wins_label": "Your betting wins reached",
+  "betting_wins_label": "As tuas vitórias em apostas \nchegaram a",
 
-  "even_experiments": "Even experiments",
-  "second_spark": "deserve a second spark",
+  "experiment_cards": ["Até as experiências", "merecem uma", "segunda chama"],
 
-  "cashback_label": "Your cashback is impressive",
+  "cashback_label": "O teu Cashback é impressionante -",
 
-  "what_game": "What is that one game",
-  "that_kept_you": "that kept you",
-  "coming_back": "coming back to?",
+  "game_cards": ["Qual é aquele jogo ao", "qual voltavas sempre?"],
 
-  "game_of_season": "Your game of the season is",
+  "game_of_season": "O teu jogo da temporada é",
 
-  "more_rewards": "More rewards are unlocked along the way!",
+  "more_rewards": "Mais recompensas\nsão desbloqueadas\nao longo do caminho!",
 
-  "gifts_collection": "Your collection of gifts is",
+  "gifts_collection": "A tua coleção de presentes é",
 
-  "season_ends": "Season 2 ends here.",
-  "vip_momentum": "But your VIP momentum keeps going.",
+  "season_ends": "A Temporada 2\ntermina aqui.",
+  "vip_momentum": "Mas o teu impulso\nVIP continua",
 
-  "see_you_next": "See you next season,",
+  "see_you_next": "Vemo-nos na próxima \ntemporada,",
 
-  "end_btn_gift": "To the gift",
-  "end_btn_replay": "Watch again",
+  "end_btn_gift": "Voltar para os jogos",
+  "end_btn_replay": "Ver novamente",
 
   "vip_level_regular": "Iron",
   "vip_level_bronze": "Bronze",

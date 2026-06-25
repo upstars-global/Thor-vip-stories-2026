@@ -14,6 +14,7 @@ const languageMap = { en, it, de, fr, pt }
 export function useStoryData(refs) {
   const {
     texts,
+    lang,
     currency,
     name,
     days,
@@ -81,6 +82,7 @@ export function useStoryData(refs) {
   // English for unknown codes.
   const applyLocale = () => {
     const locale = texts.value
+    lang.value = availableLanguages.languages.includes(locale) ? locale : 'en'
     texts.value = availableLanguages.languages.includes(locale)
       ? languageMap[locale]
       : en
