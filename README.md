@@ -1,235 +1,256 @@
 # VIP Stories (Thor)
 
-> ## ⚠️ Season 2 (редизайн) — актуальний стан
->
-> Реалізовано редизайн Season 2. Нижченаведені розділи 1–9 частково описують **Season 1**
-> (9 сегментів, вибір відео за `fire_type`) і лишені як історичний контекст. Актуальна правда — тут:
->
-> - **Єдине відео** для всіх: `public/video/animatic.{webm,mp4}`, `object-fit: cover` (без `videoMap`/`fire_type`-вибору). `fire_type` лишений як no-op для сумісності старих посилань.
-> - **21 сцена** описана конфігом `SCENES` у [scripts.js](src/components/Stories/scripts.js) — єдине джерело порядку, skip-прапорців і тайм-кодів (`vstart`/`dur`). Архітектура руху та сама: Options API `setup()`, мастер-таймлайн + під-таймлайн на сцену, прогрес = середнє по активних сегментах, перемотування відео на старт кожної сцени.
-> - **Типи сцен**: intro / greeting / slots / fall (чипи) / level (куб) / number / netball / game / lock / flameOut / final.
-> - **Маппинг рівнів (рішення C)**: `level` порожній/невідомий → сцена рівня пропускається; `REGULAR` → куб **Iron** (прапор `SHOW_IRON_FOR_REGULAR`); решта → свій куб. Кубки: `img/levels/{Iron,Bronze,Silver,Gold,Plathinum,Diamond}.png`.
-> - **Нові параметри**: `biggest_hit`, `live_wins`, `betting_wins`, `gifts_count` (див. оновлену таблицю в розділі 4).
-> - **Тайм-коди — провізорні** (рівномірні в `SCENES`), фінал вирівняно на кінець відео. Точна калібровка — після фінального відео.
-> - Маркетингова документація: `_input/marketing-doc-season2.md`.
-> - Дев-хук `window.__story` (тільки DEV-режим) для скрабу таймлайну при QA.
+Season 2 персональних VIP-сторіс: статичний Vue/Vite-застосунок з єдиним
+відеофоном та HTML/GSAP-оверлеями, які показують персональні досягнення гравця
+і ведуть до фінального CTA.
 
-## 1. Призначення
+Проєкт збирається у `dist/`, розміщується на CDN і зазвичай відкривається
+всередині продуктового `iframe`.
 
-Персональні сторіс для VIP-гравців: показують досягнення гравця за квартал (рівень, топовий виграш, кешбек, улюблена гра, «тип вогню») і ведуть до фінальної кнопки отримання подарунку.
+## Поточний стан
 
-Особливості продукту:
+- Реалізовано повний редизайн Season 2.
+- Використовується одне універсальне відео:
+  - `public/video/animatic.webm`
+  - `public/video/animatic.mp4`
+- У шаблоні спочатку підключається WebM, далі MP4 fallback. На iPhone/Safari
+  використовується MP4.
+- Відео виводиться через `object-fit: cover`; поверх нього лежить масштабоване
+  overlay-полотно 1080x1920 з текстом, картками, кубами та CTA.
+- Порядок, таймкоди й умови пропуску сцен описані в
+  `src/components/Stories/config/scenes.js`.
+- Відео є master clock: GSAP master timeline синхронізується з
+  `video.currentTime`.
 
-- Застосунок збирається у статику й розміщується на CDN.
-- На домен продукту вбудовується через `iframe`, тож для гравця виглядає так, ніби сторіс лежить на домені продукту.
-- Уся персоналізація приходить через query-параметри посилання (див. розділ 4).
-- Анімація досягається синхронізацією фонового відео (спільне для всіх гравців) з HTML/CSS/GSAP-оверлеями (індивідуальні показники гравця).
+## Стек
 
-> Примітка про мову/валюту: за актуальною інтеграцією мова та валюта підтягуються беком продукту й окремими параметрами в посиланні вже не передаються. Проте код історично досі вміє читати `language`/`user_language` та `currency`/`user_currency` з URL (див. розділ 4) — це легасі, яке можна прибрати під час редизайну.
+- Vue 3
+- Vite
+- GSAP
+- SCSS
 
-## 2. Стек і структура
-
-- Vue 3 (Options API через `setup()`), Vite, GSAP. Залежності — у [package.json](package.json).
-- Точка входу та потік рендеру:
-  - [src/main.js](src/main.js) монтує застосунок у `#app`.
-  - [src/App.vue](src/App.vue) рендерить єдиний компонент `your_story`.
-  - [src/components/Stories/your_story.vue](src/components/Stories/your_story.vue) — HTML-шаблон оверлеїв + підключення стилів. Логіка винесена окремо: `<script src="./scripts.js">`.
-  - [src/components/Stories/scripts.js](src/components/Stories/scripts.js) — вся логіка (парсинг URL, побудова таймлайнів, керування плеєром, події в `parent`).
-- [index.html](index.html) містить інлайновий прелоадер (SVG) і CSS-змінні теми; прелоадер ховається на `window.onload`.
-- [vite.config.js](vite.config.js): `base: "./"` (відносні шляхи — критично для роботи з піддиректорії CDN) та alias `@components`.
-- Допоміжні UI-компоненти у `src/components/Stories/UI/`:
-  - `storiesTopBar.vue` — сегментний прогрес-бар.
-  - `mobileControlArea.vue` — таб-зони керування на мобільному.
-  - `desktopControlButton.vue` — стрілки перемикання на десктопі.
-  - `desktopPausePlayButton.vue` — кнопка пауза/плей.
-  - `closeButton.vue` — хрестик закриття.
-
-> Решта тек `src/ui/`, `src/ui-kit/`, шрифти й SCSS-міксини — це загальна бібліотека, що НЕ використовується сторісом напряму. Для редизайну сторіс релевантна лише тека `src/components/Stories/`.
-
-## 3. Ядро: синхронізація відео та GSAP
-
-Це найважливіша для розуміння частина.
-
-- Фон — це `<video>` (`#videoPlayer`), без звуку, `playsinline`. Конкретний кліп обирається за `fire_type` (1–4) через `videoMap` -> `img/video/1.mp4 … 4.mp4`.
-- Поверх відео лежать HTML-оверлеї `#stories-segment-N` (клас `.stories-segment`), де відображаються тексти/числа гравця.
-- Головний GSAP-таймлайн `tl` агрегує 9 під-таймлайнів `segment1 … segment9` (`tl.add(segmentN)` наприкінці `onMounted`).
-- Кожен під-таймлайн на старті **перемотує відео** на свій захардкоджений час і запускає `videoPlayer.play()`:
-
-| Сегмент | Старт відео (с) | Залежить від |
-|---|---|---|
-| `segment1` | `0` | завжди |
-| `segment2` | `7.4` | завжди |
-| `segment3` | `12.7` | завжди |
-| `segment4` | `20.7` | `!scip_vip_level` |
-| `segment5` | `25.8` | `!scip_top_wining` |
-| `segment6` | `30.9` | `!scip_cashback` |
-| `segment7` | `36` | `!scip_thumbnail` |
-| `segment8` | `41.1` | завжди |
-| `segment9` | `64` | завжди |
-
-- Зациклення фону: `checkVideoProgress` (на `timeupdate`) відмотує відео приблизно за 3с до кінця, щоб фон не «застигав».
-- Якщо `videoPlayer.value.paused` після спроби `play()` (типово автоплей заблоковано на мобільних) — показується оверлей `#stories-segment-0` із кнопкою «Play» (`showPlayButton`), а таймлайн ставиться на паузу.
-
-### 3.1 Відповідність «сегмент таймлайну -> оверлей -> зміст»
-
-Критично для редизайну: **ID оверлеїв НЕ збігаються 1:1 з номерами під-таймлайнів**. Один під-таймлайн може керувати кількома оверлеями, а деякі ID пропущені (`#stories-segment-7` не існує).
-
-| Під-таймлайн | Оверлеї (`#stories-segment-*`) | Зміст | Ключі локалізації |
-|---|---|---|---|
-| `segment1` | `1` | Привітання + ім'я | `hello`, (`name` з URL) |
-| `segment2` | `2` | «Згораємо від цікавості» + дні | `we_burning`, `days`, `many_days` |
-| `segment3` | `3`, потім `4` | «Яка сила вогню…» -> «Дізнаємось разом?» | `what_power`, `find_out` |
-| `segment4` | `5` | VIP-рівень + картинка статусу | `you_reached`, `level`, `in_vip`, `vip_level_1..6` |
-| `segment5` | `6` | Топовий виграш + валюта | `top_winnings` |
-| `segment6` | `8` | Кешбек + валюта | `you_received`, `of_cashback` |
-| `segment7` | `9` | Улюблена гра (thumbnail + назва) | `slot` |
-| `segment8` | `10` -> `11` -> `12` | «Визначили…» -> «Готовий?» -> тип вогню (назва+опис) | `determined`, `ready`, `sparkling_ray*`, `bright_flash*`, `real_fire*`, `fire_element*` |
-| `segment9` | `13` | Фінал: подарунок + кнопки | `end_text_gift`, `end_btn_1`, `end_btn_2` |
-| — | `0` | Фолбек-кнопка Play (коли автоплей заблоковано) | `press` |
-
-### 3.2 Безшовний пропуск сегментів
-
-Не в кожного гравця є всі показники, а деякі значення можуть бути такими, що радше засмутять гравця (наприклад надто малий виграш чи відсутній кешбек). Тому частина сегментів є **умовною** і за відповідних умов повністю пропускається. Ключова вимога: пропуск має бути **миттєвим і безшовним** — пропущений сегмент не повинен ні на мить блимнути на екрані, для гравця він просто не існує.
-
-Умовні сегменти й вирази, що керують пропуском (обчислюються при парсингу URL):
-
-| Сегмент | Прапорець пропуску | Умова пропуску |
-|---|---|---|
-| `segment4` (VIP-рівень) | `scip_vip_level` | `level` порожній або `REGULAR` |
-| `segment5` (топовий виграш) | `scip_top_wining` | `top_winnings <= 50` |
-| `segment6` (кешбек) | `scip_cashback` | `cashback < 1` |
-| `segment7` (улюблена гра) | `scip_thumbnail` | немає ні `favorite_game_thunbnail`, ні `favorite_game_name` |
-
-Як саме досягається безшовність (двошаровий захист):
-
-1. **Сегмент не будується в таймлайні.** Побудова під-таймлайну обгорнута в `if (!scip_...)`. Якщо умова пропуску виконана — GSAP-анімація для цього сегмента взагалі не створюється, його `duration` лишається `0`, тож:
-   - він не додає часу в загальний таймлайн `tl` (анімація йде далі без паузи/порожнього кадру);
-   - він не враховується у прогрес-барі (`storiesTopBar` рахує лише сегменти з `duration > 0`) і в `segmentStartTimes` (перемотування стрілками теж його ігнорує).
-2. **HTML-елементи лишаються прихованими.** Усі оверлеї `.stories-segment` за замовчуванням мають `display: none` (див. [styles.scss](src/components/Stories/styles.scss)). Оверлей стає видимим лише тоді, коли його під-таймлайн виконує `set("#stories-segment-N", { display: "flex" })`. Якщо сегмент пропущено, цей `set` ніколи не запускається — отже відповідний HTML гарантовано не з'явиться на екрані. Додатково частина вмісту захищена `v-if` у шаблоні (напр. блок виграшу в `#stories-segment-6` обгорнуто в `v-if="!scip_top_wining"`).
-
-> Підсумок для редизайну: щоб коректно пропустити секцію, недостатньо просто не показати текст — потрібно і не будувати її під-таймлайн (`if (!scip_...)`), і лишити її оверлей у `display: none`. Інакше з'явиться або порожній «застиглий» кадр у відео, або зайвий поділ у прогрес-барі.
-
-## 4. Параметри URL
-
-Парсинг виконується вручну в `onMounted` (без `vue-router`): береться все після `?`, розбивається по `&`/`=`, кожне значення проходить `decodeURIComponent`.
-
-Приклад посилання:
-
-```
-https://winspirit.com/stories/vip?name=Sofia&days=195&level=SILVER&top_winnings=250&cashback=400&favorite_game_thunbnail=https://winspirit.com/svc/img/i/WinSpirit/games/Fruit_Million_halloween_edition_400x560_jpg&favorite_game_name=Book%20of%20wealth&fire_type=&final_link=https://bit.ly/3XrsdUX
-```
-
-> Таблиця нижче — **актуальний контракт Season 2** (відповідає `parseParams`/`computeSkips` у поточному [scripts.js](src/components/Stories/scripts.js)).
-
-| Параметр | Призначення | Поведінка / умова пропуску |
-|---|---|---|
-| `name` | Ім'я/нік гравця | Порожнє -> привітання без імені |
-| `days` | Днів на проєкті (сцена «слоти») | Порожнє або `< 1` -> сцену пропущено |
-| `level` | VIP-рівень | `REGULAR / IRON / BRONZE / SILVER / GOLD / PLATINUM / DIAMOND`. Порожнє/невідоме -> пропуск; `REGULAR` -> куб **Iron**; решта -> свій куб |
-| `top_winnings` | Топовий виграш | Кома->крапка, прибираються пробіли, округлення. `<= 50` або порожнє -> пропуск |
-| `biggest_hit` | Найбільший single-win | `<= 50` або порожнє -> пропуск |
-| `live_wins` | Сумарні виграші Live | `<= 50` або порожнє -> пропуск |
-| `betting_wins` | Виграші в ставках | `<= 50` або порожнє -> пропуск |
-| `cashback` | Кешбек | `< 1` або порожнє -> пропуск |
-| `gifts_count` | К-сть подарунків у колекції | `< 1` або порожнє -> пропуск |
-| `favorite_game_thunbnail` | URL зображення гри | **Друкарська помилка `thunbnail`** — саме так читається. Домен не має бути забаненим у гравця |
-| `favorite_game_name` | Назва гри | `+` -> пробіл. Пробіли краще кодувати `%20`. Порожні разом з тумбнейлом -> сцена гри + її лід-ін пропускаються |
-| `final_link` | Лінк подарунку (-> `end_link`) | Кнопка подарунку + хрестик. Порожнє -> кнопку приховано (fallback), хрестик лише закриває. Домен має збігатися з доменом сторіс |
-| `fire_type` | **Легасі, no-op** | Відео єдине; параметр більше не обирає кліп. Лишений для сумісності старих посилань |
-| `language` / `user_language` | Мова | Фолбек: `navigator.language` -> інакше `en` |
-| `currency` / `user_currency` | Валюта | Дефолт `EUR` (у number-сценах Season 2 валюта не виводиться) |
-
-Логіка thumbnail-секції (сегмент 7) керується трьома прапорцями:
-
-- `scip_thumbnail` — `false`, якщо задано хоча б `favorite_game_thunbnail` або `favorite_game_name` (інакше секцію пропущено).
-- `hide_thumbnail` — ховає саме картинку, якщо URL зображення порожній.
-- `change_thumbnail_text_position` — переставляє підпис відносно картинки, коли немає назви гри.
-
-### 4.1 Автоматичний розрахунок `fire_type`
-
-Якщо `fire_type` у URL порожній/відсутній, тип визначається так:
-
-1. За рівнем: `BRONZE`/`SILVER` -> `1`, `GOLD` -> `2`, `PLATINUM` -> `3`, `DIAMOND` -> `4`. `REGULAR`/немає -> `1`.
-2. Далі (вже у `onMounted`) тип може підвищитись за топовим виграшем: `top_winnings > 500` -> мінімум `2`, `> 1000` -> мінімум `3`, `> 10000` -> мінімум `4`.
-
-`fire_type` напряму визначає, який із 4 фонових відеокліпів програється.
-
-## 5. Інтеграція в iframe (контракт із продуктом)
-
-Сторіс спілкується з батьківською сторінкою продукту через `postMessage` і керує навігацією через `window.parent.location`.
-
-Вихідні події (`window.parent.postMessage(<msg>, "*")`):
-
-- `reach_end` — досягнуто фінальний сегмент (надсилається один раз).
-- `bonuses_btn` — натиснуто кнопку отримання подарунку.
-- `close` — натиснуто хрестик.
-- `click_backward` / `click_forward` — перемикання сегментів.
-- `click_pause` / `click_start` — пауза/відновлення.
-
-Навігація:
-
-- `getGift()` надсилає `bonuses_btn`, потім (через 300мс) `window.parent.location.href = end_link`.
-- `closeStory()` надсилає `close`, потім (через 150мс) теж веде на `end_link`.
-
-> Через те, що перехід виконується саме в `window.parent.location`, домен подарунку (`final_link`) повинен збігатися з доменом сторіс — інакше активація подарунку на боці продукту не пройде.
-
-Адаптивність: на `resize` оновлюється CSS-змінна `--vh` (`window.innerHeight / 100`), яку використовують стилі для коректної висоти на мобільних.
-
-## 6. Керування плеєром
-
-- **Прогрес-бар** (`UI/storiesTopBar.vue`): кількість сегментів динамічна — рахуються лише ті під-таймлайни, у яких `duration > 0` (тобто не пропущені). Загальний `progress` (computed у `scripts.js`) усереднює прогрес кожного активного сегмента.
-- **Мобільні таб-зони** (`mobileControlArea`): ліва/права половина екрана. Короткий тап -> `jumpToSegment('backward'|'forward')`; утримання (> `pressDuration`, 250мс) -> пауза, відпускання -> відновлення.
-- **Десктоп**: стрілки (`desktopControlButton`) для перемикання, кнопка пауза/плей (`desktopPausePlayButton` + `togglePlayState`).
-- **Перемотування між сегментами**: `jumpToSegment` рахує поточний сегмент за `segmentStartTimes` (накопичені тривалості активних сегментів) і встановлює `tl.time(...)`.
-- **Replay**: кнопка «Watch again» (`watchAgain`) перезавантажує сторінку (`window.location.reload`).
-
-## 7. Локалізація
-
-- Файли перекладів: `src/components/Stories/localization/{en,it,de,fr,pt}.json`.
-- Season 2: EN — джерело правди (реалізований). IT/PT/FR/DE наразі = функціональний EN-fallback; фінальний локалізований текст переноситься з Figma-кадрів локалізацій (посилання в `_input/figma-links.md`) по ключах `en.json`.
-- Доступні мови перелічені в `localization/available-languages.json`; у коді вони мапляться через `languageMap`.
-- Вибір мови: параметр `language`/`user_language` -> якщо немає, `navigator.language` -> фолбек `en`.
-- Усі тексти в шаблоні беруться з об'єкта `texts` (наприклад `{{ texts.hello }}`).
-
-Щоб додати мову:
-
-1. Створити `localization/<lang>.json` з тим самим набором ключів, що й `en.json`.
-2. Додати код мови у `available-languages.json`.
-3. Імпортувати JSON у [scripts.js](src/components/Stories/scripts.js) і додати в `languageMap`.
-
-## 8. Збірка та деплой
+Команди:
 
 ```bash
 npm install
-npm run dev      # локальна розробка (vite --host 0.0.0.0)
-npm run build    # збірка у dist/
-npm run preview  # локальний прев'ю продакшн-збірки
+npm run dev
+npm run build
+npm run preview
 ```
 
-- `base: "./"` забезпечує відносні шляхи — збірку можна класти в будь-яку піддиректорію CDN.
-- Готовий `dist/` розміщується на CDN і вбудовується на домен продукту через `iframe`.
+## Структура
 
-## 9. Гайд для редизайну
+Основні файли:
 
-### Додати / прибрати секцію
+- `src/main.js` - монтує Vue-застосунок.
+- `src/App.vue` - рендерить `your_story`.
+- `src/components/Stories/your_story.vue` - DOM-шаблон відео, оверлеїв і
+  контролів.
+- `src/components/Stories/scripts.js` - composition root: стан, computed,
+  побудова таймлайна, підключення composables.
+- `src/components/Stories/animations/buildAnimations.js` - GSAP entrance/hold/exit
+  анімації сцен.
+- `src/components/Stories/composables/useStoryData.js` - URL-параметри,
+  локалізація та skip-логіка.
+- `src/components/Stories/composables/useStoryPlayback.js` - playback, seek,
+  sync video -> GSAP, pause/hold controls.
+- `src/components/Stories/composables/useStoryBridge.js` - `postMessage` і
+  навігація в parent frame.
+- `src/components/Stories/composables/useViewportFit.js` - підгонка тексту та
+  viewport-related layout.
+- `src/components/Stories/styles/styles.scss` - основний layout і CSS transform
+  contracts.
+- `src/components/Stories/config/*.js` - layout-конфіги окремих сцен.
+- `src/components/Stories/localization/*.json` - локалізації.
 
-1. Кожна секція = окремий під-таймлайн `segmentN` + один або кілька оверлеїв `#stories-segment-*` у [your_story.vue](src/components/Stories/your_story.vue).
-2. Створити `gsap.timeline({...})` за зразком існуючих, додати його через `tl.add(segmentN)`, виставити `segmentN_duration.value = segmentN.duration()`.
-3. Прогрес-бар оновиться автоматично: він рахує лише сегменти з `duration > 0`.
-4. Щоб секція була умовною — обгорнути побудову під-таймлайну в `if (!scip_...)`, як зроблено для сегментів 4–7.
+`vite.config.js` використовує `base: "./"` та alias `@components`, щоб збірку
+можна було класти в будь-яку CDN-піддиректорію.
 
-### Чеклист синхронізації з новим відео
+## Сцени й таймкоди
 
-- Оновити `segmentNStartTime` (тайм-коди старту кожної секції у відео).
-- Підігнати тривалості анімацій (`.to(..., { duration })`) під довжину відповідних фрагментів відео.
-- Оновити `videoMap` і файли `img/video/1..4.mp4`, якщо змінюється логіка «типів вогню».
-- Перевірити поріг відмотування в `checkVideoProgress` (зараз ~3с до кінця).
+Єдине джерело правди - `SCENES` у `src/components/Stories/config/scenes.js`.
+Зараз у проєкті 19 сцен:
 
-### Відомі «крихкі» місця (варто почистити при редизайні)
+```js
+{ id: 1, type: 'intro', vstart: 0, dur: 2.25 }
+// ...
+{ id: 19, type: 'final', vstart: 67.07, dur: 5.06 }
+```
 
-- **Захардкоджені тайм-коди** старту сегментів та тривалостей — будь-яка зміна відео ламає синхронізацію.
-- **Невідповідність ID оверлеїв номерам сегментів** (`#stories-segment-7` відсутній, `segment8` керує `10/11/12`) — легко помилитись.
-- **Друкарська помилка в параметрі** `favorite_game_thunbnail` — змінювати назву треба синхронно з системою, що генерує посилання.
-- **Легасі-читання `language`/`currency`** з URL, хоча інтеграція їх більше не передає.
-- **`console.log`**, що лишилися в `onMounted` (`scip_*`).
-- **Дубльовані імпорти** (`icon_replay` / `watchAgainIcon`) та невикористані стани у `setup()`.
+Поля:
+
+- `id` - DOM id сцени (`#stories-segment-${id}`).
+- `type` - тип entrance-анімації в `buildAnimations.js`.
+- `vstart` - абсолютний таймкод початку фонової сцени у відео.
+- `dur` - тривалість overlay-сцени; вона не обов'язково дорівнює відстані до
+  наступного `vstart`.
+- `skip` - ключ в об'єкті `skip`, якщо сцена умовна.
+
+Таймкоди відкалібровані під `public/video/animatic.{webm,mp4}`:
+720x1280, 60fps, приблизно 72.133s.
+
+Деякі сцени навмисно мають `dur` трохи довший за фонове вікно: exit zoom
+частково заходить поверх наступного кадру, щоб збігатися з дизайнерським
+"наїздом" у відео.
+
+## Playback і синхронізація
+
+Основна модель:
+
+1. Фонове `<video>` - master clock.
+2. Master GSAP timeline розміщує кожну сцену в абсолютному відеочасі:
+   `tl.add(stl, scene.vstart)`.
+3. `syncToVideo()` у `requestAnimationFrame` тримає `tl.time()` близько до
+   `video.currentTime`.
+4. Якщо відео потрапляє в gap від пропущеної сцени, код перескакує до наступної
+   побудованої сцени, щоб skipped background не показувався.
+
+Важливі деталі для iPhone/Safari:
+
+- Холодний старт чекає на буфер (`readyState >= HAVE_FUTURE_DATA` і buffered
+  lookahead), щоб GSAP не випередив відео.
+- Після stall/waiting timeline ставиться на паузу й повертається лише тоді, коли
+  відео знову справді відтворюється.
+- Ручний seek чекає на `seeked` і наступний `requestVideoFrameCallback`, після
+  чого вмикає короткий settle guard. Це захищає entrance-анімації від тремтіння,
+  коли iOS ще доганяє decoded frame після seek.
+- Фінальна сцена після `ended` утримує GSAP timeline у кінці, а відео окремо
+  лупить хвіст. Це потрібно, щоб фінальне ім'я/CTA не перегравали entrance.
+
+## Анімації та CSS contracts
+
+GSAP здебільшого анімує opacity та CSS-змінні, а не перезаписує весь
+`transform`. Це зберігає центрування та повороти з CSS:
+
+- `--ey`, `--es` - спільний vertical/scale entrance для текстів, кубів, game frame.
+- `--fall-y` - falling cards.
+- `--journey-y` - scene 4 cards.
+- `--gift-y` - scene 6 cards.
+- `--reel-y` - slot reels.
+- `--seg-scale` - exit zoom усієї overlay-сцени.
+
+`.stories-segment` промотується в окремий compositor layer через
+`will-change: transform` і `backface-visibility: hidden`, щоб iOS/WebKit плавно
+масштабував сцену під час exit zoom.
+
+## URL-параметри
+
+Парсинг виконується вручну в `useStoryData.js`: береться query string,
+розбивається за `&`/`=`, значення проходять через `decodeURIComponent`.
+
+Приклад:
+
+```text
+https://example.com/stories/?name=Sofia&days=143&level=GOLD&top_winnings=1200&live_wins=450&betting_wins=320&cashback=80&gifts_count=4&favorite_game_name=Book%20of%20Ra&favorite_game_thunbnail=https%3A%2F%2Fexample.com%2Fgame.jpg&final_link=https%3A%2F%2Fexample.com%2Fbonus&language=en
+```
+
+Актуальні параметри:
+
+| Параметр | Призначення | Умова пропуску |
+|---|---|---|
+| `name` | Ім'я/нік гравця | Не пропускає сцену |
+| `days` | Дні в проєкті, slot-сцена | `< 1` або відсутній -> `slots` skipped |
+| `level` | VIP-рівень | Порожній/невідомий -> `level` skipped |
+| `top_winnings` | Top winnings number-сцена | `< 1` або відсутній -> skipped |
+| `live_wins` | Live wins number-сцена | `< 1` або відсутній -> skipped |
+| `betting_wins` | Betting wins number-сцена | `< 1` або відсутній -> skipped |
+| `cashback` | Cashback number-сцена | `< 1` або відсутній -> skipped |
+| `gifts_count` | Gifts number-сцена | `< 1` або відсутній -> skipped |
+| `favorite_game_name` | Назва улюбленої гри | разом із порожнім thumbnail -> `game` skipped |
+| `favorite_game_thunbnail` | URL зображення гри | друкарська помилка `thunbnail` збережена в контракті |
+| `final_link` | CTA-посилання подарунка | приховує gift CTA, якщо порожній |
+| `language` / `user_language` | Локаль | fallback на `navigator.language`, потім `en` |
+| `currency` / `user_currency` | Валюта | читається, але в поточних number-сценах не виводиться |
+
+Підтримувані значення `level`:
+
+- `REGULAR` -> показується початковий Iron cube (`SHOW_IRON_FOR_REGULAR = true`).
+  Це вхідне значення з продуктового контракту для regular-користувача; окремого
+  зображення для нього немає. У Season 1 `REGULAR` пропускав level-сцену, у
+  Season 2 за маркетинговою документацією він мапиться на Iron.
+- `IRON`
+- `BRONZE`
+- `SILVER`
+- `GOLD`
+- `PLATINUM`
+- `DIAMOND`
+
+Невідомий або порожній `level` пропускає level-сцену.
+
+## Локалізація
+
+Файли:
+
+- `src/components/Stories/localization/en.json`
+- `src/components/Stories/localization/it.json`
+- `src/components/Stories/localization/de.json`
+- `src/components/Stories/localization/fr.json`
+- `src/components/Stories/localization/pt.json`
+- `src/components/Stories/localization/available-languages.json`
+
+Щоб додати мову:
+
+1. Створити `localization/<lang>.json` із тими самими ключами, що й `en.json`.
+2. Додати код мови в `available-languages.json`.
+3. Імпортувати JSON в `useStoryData.js`.
+4. Додати його в `languageMap`.
+
+## Інтеграція з parent frame
+
+Компонент надсилає події через `window.parent.postMessage(msg, '*')`:
+
+- `reach_end` - master timeline дійшов до фіналу.
+- `bonuses_btn` - користувач натиснув CTA подарунка.
+- `close` - користувач закрив сторіс.
+- `click_backward` / `click_forward` - ручна навігація.
+- `click_pause` / `click_start` - пауза/відновлення.
+
+Навігація:
+
+- `getGift()` надсилає `bonuses_btn`, а через 300ms переводить
+  `window.parent.location.href` на `final_link`.
+- `closeStory()` надсилає `close`, а через 150ms також переводить parent на
+  `final_link`, якщо він заданий.
+- `watchAgain()` перезавантажує поточну сторінку.
+
+## Контроли
+
+- Mobile: ліва/права tap-зона через `mobileControlArea`.
+- Short tap: перехід назад/уперед до побудованої сцени.
+- Long press > 250ms: pause/hold, release відновлює playback.
+- Desktop: стрілки та pause/play button.
+- Progress bar рахує лише побудовані (не skipped) сцени.
+
+Paused navigation спеціально приземляється не у `vstart`, а після entrance-секції,
+щоб користувач бачив зібрану сцену, а не opacity 0 / картки в польоті.
+
+## QA-чеклист
+
+Перед деплоєм перевірити:
+
+- `npm run build` проходить.
+- iPhone Safari: лінійний перегляд без тремтіння на zoom-переходах.
+- iPhone Safari: ручне перемотування на сценах із кубом, falling cards і netball.
+- Фінальна сцена: ім'я та CTA не зменшуються й не зникають після `ended`.
+- Paused navigation: сцени показуються вже зібраними.
+- Skip cases: відсутні параметри не показують порожні сцени й не ламають
+  progress bar.
+- `final_link` порожній і непорожній.
+- Усі локалі з `available-languages.json`.
+
+## Робота з відео
+
+Актуальні runtime-файли:
+
+- `public/video/animatic.mp4`
+- `public/video/animatic.webm`
+
+Рекомендації для наступних версій відео:
+
+- MP4: без audio track, `+faststart`, keyframe/GOP близько 1 секунди.
+- WebM: без audio track, keyframe/GOP близько 1 секунди.
+- Після зміни відео потрібно звірити `vstart`/`dur` у `config/scenes.js`.
+- WebM GOP особливо важливий для Chrome/Android; iPhone/Safari використовує MP4.
+
+`public/video/old/` може використовуватися як локальний бекап, але не має
+потрапляти в git.

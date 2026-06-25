@@ -26,3 +26,6 @@ dist-ssr
 # Input data (task, mockup links, marketing docs) — local only
 _input/
 
+# Local video backups
+public/video/old/
+
