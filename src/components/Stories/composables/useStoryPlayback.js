@@ -29,11 +29,26 @@ export function useStoryPlayback(ctx) {
   const SYNC_EPSILON = 0.04 // ~1 frame @30fps; only correct beyond this drift
   let frameHandle = null
   let syncStarted = false
+  let isFinalHolding = false
+
+  // After a manual seek iOS keeps decoding from the previous keyframe for a few
+  // frames past `seeked`, so video.currentTime briefly advances non-monotonically.
+  // If syncToVideo re-pinned tl.time() to those jittery values it would scrub the
+  // entrance animation back and forth - the visible "shaking" of the cube / chips.
+  // seekBoth sets this timestamp to suppress sync corrections for a short settle
+  // window right after resume, letting GSAP play the entrance by its own clock
+  // until the decoder is steady again. Identity sync resumes automatically after.
+  let suppressSyncUntil = 0
 
   const syncToVideo = () => {
     const v = videoPlayer.value
     if (!v || v.seeking || v.paused) return
     if (isPaused.value || longPress.value) return
+    if (performance.now() < suppressSyncUntil) return
+    if (isFinalHolding) {
+      if (tl.time() < tl.duration()) tl.time(tl.duration())
+      return
+    }
     const segs = segments?.value || []
     if (!segs.length) return
     const t = v.currentTime
@@ -237,6 +252,12 @@ export function useStoryPlayback(ctx) {
   const handleVideoEnded = () => {
     const v = videoPlayer.value
     if (!v) return
+    isFinalHolding = true
+    // Keep the CTA/text timeline fully settled while only the video background
+    // loops its tail. Otherwise syncToVideo would pull tl.time() back to
+    // duration - FINAL_LOOP_BACK and can replay the final name's entrance
+    // (opacity/scale), which is visible on iOS as shrinking/disappearing.
+    tl.time(tl.duration())
     v.currentTime = Math.max(0, (v.duration || 0) - FINAL_LOOP_BACK)
     v.play().catch(() => {})
   }
@@ -345,15 +366,48 @@ export function useStoryPlayback(ctx) {
     return target + Math.min(settle, maxOffset)
   }
 
+  // How long to suppress sync after a seek-resume (see suppressSyncUntil).
+  const SETTLE_GUARD_MS = 220
+  // Hard cap so the story can never hang if `seeked` never fires (iOS edge case).
+  const SEEK_FALLBACK_MS = 600
+  // rVFC safety: a presented-frame callback may never fire on a throttled tab,
+  // so we cap the wait and resume anyway.
+  const FRAME_WAIT_MS = 200
+
+  // Resolve `cb` on the next actually-presented video frame. `seeked` only means
+  // the seek is logically complete - on iOS the decoded frame may not be
+  // composited yet, so starting GSAP here races a still-settling picture.
+  // requestVideoFrameCallback fires when a frame is really on screen; we cap the
+  // wait so a throttled/background tab can never block the resume.
+  const onNextPresentedFrame = (v, cb) => {
+    if (typeof v.requestVideoFrameCallback !== 'function') {
+      cb()
+      return
+    }
+    let fired = false
+    const run = () => {
+      if (fired) return
+      fired = true
+      cb()
+    }
+    v.requestVideoFrameCallback(() => run())
+    setTimeout(run, FRAME_WAIT_MS)
+  }
+
   // Seek both clocks to `time`. A <video> seek is async (slow on iOS over the
   // network). If the GSAP timeline keeps running during that seek it races
   // ahead of the still-frozen background and is then snapped back by
   // syncToVideo, which reads as the overlay "shaking"/jumping (most visible on
   // the scene-5 cube). So we pause the timeline, seek the video, and only
-  // resume - in sync with the actually-decoded frame - once the video fires
-  // `seeked`. A timeout guards against a missing event so we can never freeze.
+  // resume once the video has both fired `seeked` AND presented a real frame
+  // (requestVideoFrameCallback) - so GSAP never starts against a not-yet-
+  // composited / still-decoding picture. A short settle guard then keeps
+  // syncToVideo from re-pinning the timeline to the decoder's first few jittery
+  // currentTime values. A timeout guards against a missing event so we can
+  // never freeze.
   const seekBoth = (time, shouldPlay) => {
     const v = videoPlayer.value
+    isFinalHolding = false
     tl.pause()
     tl.time(time)
     if (!v) {
@@ -362,24 +416,32 @@ export function useStoryPlayback(ctx) {
     }
     if (Math.abs(v.currentTime - time) < 0.02) {
       if (shouldPlay) {
+        suppressSyncUntil = performance.now() + SETTLE_GUARD_MS
         tl.play()
         v.play().catch(() => {})
       }
       return
     }
     let done = false
-    const resume = () => {
-      if (done) return
-      done = true
-      v.removeEventListener('seeked', resume)
+    const finishResume = () => {
       tl.time(v.currentTime)
       if (shouldPlay) {
+        // Let the entrance play by GSAP's own clock for a moment instead of
+        // being scrubbed by the decoder's still-settling currentTime.
+        suppressSyncUntil = performance.now() + SETTLE_GUARD_MS
         tl.play()
         v.play().catch(() => {})
       }
     }
+    const resume = () => {
+      if (done) return
+      done = true
+      clearTimeout(fallback)
+      v.removeEventListener('seeked', resume)
+      onNextPresentedFrame(v, finishResume)
+    }
     v.addEventListener('seeked', resume, { once: true })
-    setTimeout(resume, 600)
+    const fallback = setTimeout(resume, SEEK_FALLBACK_MS)
     v.currentTime = time
   }
 

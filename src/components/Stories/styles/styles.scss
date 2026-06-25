@@ -77,6 +77,17 @@
   flex-direction: column;
   justify-content: center;
   transform-origin: center;
+  /* The exit "zoom into camera" drives --seg-scale (a CSS variable feeding
+     transform). On iOS/WebKit a custom-property-driven transform is NOT
+     composited - it runs on the main thread and re-rasterizes the whole scaled
+     1080x1920 canvas every frame, which drops frames and reads as shaking
+     during the zoom. Promoting the segment to its own GPU layer lets WebKit
+     scale the already-rasterized layer on the compositor instead of repainting
+     it each frame. Hidden segments are display:none so no layer is created
+     until a scene is actually active. */
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   display: none;
 }
 
