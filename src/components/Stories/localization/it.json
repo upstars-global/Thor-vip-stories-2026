@@ -1,37 +1,60 @@
 {
-        "press": "Caro giocatore, per favore premi il pulsante di riproduzione se il video non si avvia automaticamente. Questo può accadere a volte sui dispositivi mobili.",
-        "hello": "Ciao,",
-        "we_burning": "Siamo ardenti di curiosità da",
-        "days": "giorni",
-        "many_days": "molti giorni",
-        "what_power": "Qual è la forza del fuoco che alimenta il tuo gioco?",
-        "find_out": "Lo scopriamo insieme?",
-        "you_reached": "Hai già raggiunto il",
-        "level": "livello",
-        "in_vip": "nel VIP Club",
-        "top_winnings": "Le tue vincite più alte in una sola volta sono state di",
-        "you_got": "Hai già ottenuto",
-        "free_spins": "Giri Gratis",
-        "you_received": "Hai ricevuto",
-        "of_cashback": "di cashback",
-        "slot": "La maggior parte delle volte scegli di giocare a",
-        "determined": "Bene, penso che abbiamo determinato che tipo di fuoco sei!",
-        "ready": "Sei pronto a vedere questo?",
-        "sparkling_ray": "Un raggio scintillante",
-        "sparkling_ray_d": "Ti illumini ad ogni occasione di gioco e cogli la giusta direzione della fortuna.",
-        "bright_flash": "Un lampo luminoso",
-        "bright_flash_d": "La tua essenza infuocata sa sempre quando la Fortuna ti è favorevole. Attiri la fortuna con la tua luce interiore.",
-        "real_fire": "Un vero fuoco",
-        "real_fire_d": "Fai una puntata e tutto il luogo prende fuoco. La tua passione trasforma il gioco in un vero spettacolo.",
-        "fire_element": "L'elemento fuoco",
-        "fire_element_d": "La tua passione ti porta sempre alla vittoria. Bruci tutto sul tuo cammino verso il vero piacere.",
-        "end_text_gift": "Un regalo caldo per nuove vittorie!",
-        "end_btn_1": "Ottieni un regalo",
-        "end_btn_2": "Guarda di nuovo",
-        "vip_level_1": "Regolare",
-        "vip_level_2": "Bronzo",
-        "vip_level_3": "Argento",
-        "vip_level_4": "Oro",
-        "vip_level_5": "Platino",
-        "vip_level_6": "Diamante"
+  "press": "Tap to start",
+
+  "hello": "Ciao,",
+
+  "season_rhythm": "La Stagione 2\naveva il suo ritmo.",
+  "day_of_it": "E tu sei al giorno {days}.",
+
+  "every_journey": "Ogni percorso",
+  "leaves_mark": "lascia il segno.",
+
+  "this_season_reached": "In questa stagione hai\nraggiunto il livello",
+  "level_suffix": "",
+  "in_vip_club": "nel Club VIP.",
+
+  "some_moments": "Alcuni momenti sono",
+  "impossible_forget": "impossibili da dimenticare.",
+
+  "top_winnings_label": "Le tue vincite più grandi \nal momento sono",
+
+  "some_reactions": "Alcune reazioni sono",
+  "stronger_others": "più forti di altre.",
+
+  "biggest_hit_label": "La tua vincita\npiù alta ha raggiunto",
+
+  "live_cards": ["I tavoli Live", "avevano una", "loro alchimia."],
+
+  "live_wins_label": "Impressionante, le tue vincite Live totali sono",
+
+  "trusted_cards": ["Hai seguito l’istinto —", "e ne è valsa la pena!"],
+
+  "betting_wins_label": "Le tue vincite sulle scommesse hanno raggiunto",
+
+  "experiment_cards": ["Anche gli esperimenti", "meritano una", "seconda scintilla."],
+
+  "cashback_label": "Il tuo cashback è impressionante —",
+
+  "game_cards": ["Qual è quel gioco a cui", "continuavi a tornare?"],
+
+  "game_of_season": "Il tuo gioco della stagione è",
+
+  "more_rewards": "Altre ricompense si sbloccano lungo il percorso!",
+
+  "gifts_collection": "La tua collezione di Gifts è",
+
+  "season_ends": "La Stagione 2\nfinisce qui.",
+  "vip_momentum": "Ma il tuo slancio\nVIP continua.",
+
+  "see_you_next": "Ci vediamo\nla prossima stagione,",
+
+  "end_btn_gift": "Torna ai giochi",
+  "end_btn_replay": "Guarda di nuovo",
+
+  "vip_level_regular": "Iron",
+  "vip_level_bronze": "Bronze",
+  "vip_level_silver": "Silver",
+  "vip_level_gold": "Gold",
+  "vip_level_platinum": "Platinum",
+  "vip_level_diamond": "Diamond"
 }

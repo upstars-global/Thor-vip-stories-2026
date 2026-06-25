@@ -46,38 +46,40 @@
             --color-input-border: #443a70;
         }
         .fe-preloader {
-            position: absolute;
+            position: fixed;
+            inset: 0;
             width: 100%;
             height: 100vh;
+            height: 100svh;
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: -1;
+            background-color: var(--color-layer-body);
+            z-index: 2000;
+            transition: opacity 0.35s ease, visibility 0.35s ease;
         }
 
-        .fe-preloader__loader {
-            width: 50px;
-            height: 50px;
-            animation: rotating 1500ms linear infinite;
-            border-radius: 50%;
-            border: 5px solid #1C1C1C;
-            border-left-color: transparent;
-            box-sizing: border-box;
+        .fe-preloader--hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
         }
 
-        @keyframes rotating {
-            from {
-                transform: rotate(0);
-            }
-            to {
-                transform: rotate(360deg);
-            }
+        html,
+        body {
+            height: 100vh;
+            height: 100svh;
         }
 
         body {
             margin: 0;
             background-color: var(--color-layer-body);
             overflow: clip;
+        }
+
+        #app {
+            height: 100vh;
+            height: 100svh;
         }
     </style>
 </head>
@@ -90,12 +92,14 @@
 </div>
 <script type="module" src="/src/main.js"></script>
 <script>
-window.onload = function() {
-  const preloader = document.querySelector('.fe-preloader');
-  if (preloader) {
-    preloader.style.display = 'none';
-  }
-};
+// The branded WinSpirit preloader is hidden by the app once the video is
+// buffered and the first frame is presented (see scripts.js watch on
+// isBuffering). This timeout is only a safety net so the loader can never get
+// stuck on screen if the app fails to boot.
+window.setTimeout(function () {
+  var preloader = document.querySelector('.fe-preloader');
+  if (preloader) preloader.classList.add('fe-preloader--hidden');
+}, 15000);
 </script>
 </body>
 </html>
